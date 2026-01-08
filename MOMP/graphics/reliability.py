@@ -1,8 +1,10 @@
 import numpy as np
 import matplotlib.plot as plt
+import pandas as pd
+import os
 
-#def plot_reliability_diagram(combined_forecast_obs, years, max_forecast_day, save_fig, fig_dir, **kwargs):
-def plot_reliability_diagram(combined_forecast_obs, max_forecast_day, save_fig, fig_dir, **kwargs):
+#def plot_reliability_diagram(combined_forecast_obs, years, max_forecast_day, save_fig, dir_fig, **kwargs):
+def plot_reliability_diagram(combined_forecast_obs, *, model, max_forecast_day, save_fig, dir_fig, **kwargs):
     """Plot reliability diagram from forecast-observation pairs."""
 
     n_bins = 10
@@ -92,8 +94,9 @@ def plot_reliability_diagram(combined_forecast_obs, max_forecast_day, save_fig, 
     ax.set_ylim(0, 1)
 
     if save_fig:
-        os.makedirs(fig_dir, exist_ok=True)
-        fig_fn = os.path.join(dir_fig, f'reliability_{max_forecast_day}day.png')
+        os.makedirs(dir_fig, exist_ok=True)
+        #model = kwargs.get("model")
+        fig_fn = os.path.join(dir_fig, f'reliability_{model}_{max_forecast_day}day.png')
         fig.savefig(fig_fn, dpi=600, bbox_inches='tight')
         print(f"Figure saved to: {fig_fn}")
 

@@ -10,10 +10,13 @@ import numpy as np
 @dataclass
 class Case:
     case_name: str = field(default=None)
+
     model: str = field(default=None)
     model_var: str = field(default=None)
+
     obs: str = field(default=None)
     obs_var: str = field(default=None)
+
     ref_model: str = field(default=None)
     ref_model_var: str = field(default=None)
 
@@ -96,6 +99,9 @@ class Setting:
 
     obs_file_pattern: str = field(default="{}.nc")
     ref_model_file_pattern: str = field(default="{}.nc")
+    
+    obs_unit_cvt: Optional[float] = field(default=None)
+    ref_model_unit_cvt: Optional[float] = field(default=None)
 
     #dir_in: str = field(default="data")
     dir_out: str = field(default="output")

@@ -4,8 +4,10 @@ from MOMP.io.input import load_imd_rainfall
 from MOMP.stats.detect import detect_observed_onset, compute_onset_for_deterministic_model, compute_onset_for_all_members
 from MOMP.stats.climatology import compute_climatological_onset, compute_climatology_as_forecast
 
+import pandas as pd
 
-def compute_onset_metrics_with_windows(onset_df, tolerance_days=3, verification_window=(1,15), **kwargs):
+
+def compute_onset_metrics_with_windows(onset_df, *, tolerance_days, verification_window, **kwargs):
     """Compute contingency matrix metrics following MATLAB logic with forecast and validation windows."""
     print(f"Computing onset metrics with tolerance = {tolerance_days} days")
     print(f"Verification window starts {verification_window} days after initialization")
@@ -151,9 +153,14 @@ def compute_onset_metrics_with_windows(onset_df, tolerance_days=3, verification_
 
 
 
-def compute_metrics_multiple_years(years, *, model_dir, obs_dir, thresh_file, file_pattern,
-                                 tolerance_days, verification_window,
-                                 mok, members, climatology, probabilistic, **kwargs):
+def compute_metrics_multiple_years(years, *, obs_dir, obs_file_pattern, obs_var, 
+                                   thresh_file, thresh_var, wet_threshold, 
+                                   wet_init, wet_spell, dry_spell, dry_threshold, dry_extent, 
+                                   start_date, end_date, fallback_date, mok, years, years_clim,
+                                   model_dir, model_var, date_filter_year, init_days, 
+                                   unit_cvt, file_pattern, tolerance_days, verification_window, max_forecast_day, 
+                                   mok, members,  onset_percentage_threshold, climatology, probabilistic, **kwargs):
+
     """Compute onset metrics for multiple years."""
 #
     #members = kwargs['members']
@@ -182,7 +189,7 @@ def compute_metrics_multiple_years(years, *, model_dir, obs_dir, thresh_file, fi
     thresh_da = load_thresh_file(**kwargs)
 
     if climatology:
-        climatological_onset_doy = compute_climatological_onset(obs_dir, thresh_file, mok=mok)
+        climatological_onset_doy = compute_climatological_onset(**kwargs)
 
     for year in years:
         print(f"\n{'='*50}")
@@ -191,12 +198,12 @@ def compute_metrics_multiple_years(years, *, model_dir, obs_dir, thresh_file, fi
 
         imd = load_imd_rainfall(year, **kwargs)
 
-        onset_da = detect_observed_onset(imd, thresh_da, year, mok=mok, **kwargs)
+        onset_da = detect_observed_onset(imd, thresh_da, year, **kwargs)
 
         if probabilistic:
-            p_model = get_forecast_probabilistic_twice_weekly(year, model_forecast_dir, file_pattern, members, **kwargs)
+            p_model = get_forecast_probabilistic_twice_weekly(year, **kwargs)
         elif not climatology:
-            p_model = get_forecast_deterministic_twice_weekly(year, model_forecast_dir, file_pattern, **kwargs)
+            p_model = get_forecast_deterministic_twice_weekly(year, **kwargs)
 
 
         if probabilistic:
@@ -206,22 +213,19 @@ def compute_metrics_multiple_years(years, *, model_dir, obs_dir, thresh_file, fi
 
         elif not climatology:
             onset_df = compute_onset_for_deterministic_model(
-                p_model, thresh_da, onset_da,
-                max_forecast_day=max_forecast_day, mok=mok, **kwargs
+                p_model, thresh_da, onset_da, **kwargs
             )
 
         elif climatology:
-            init_dates = get_initialization_dates(year)
+            init_dates = get_initialization_dates(year, **kwargs)
             onset_df = compute_climatology_as_forecast(
                 climatological_onset_doy, year, init_dates, onset_da,
-                max_forecast_day=max_forecast_day, mok=mok
+                **kwargs
             )
 
 
         metrics_df, summary_stats = compute_onset_metrics_with_windows(
-            onset_df,
-            tolerance_days=tolerance_days,
-            verification_window=verification_window, **kwargs
+            onset_df, **kwargs
         )
 
         metrics_df_dict[year] = metrics_df

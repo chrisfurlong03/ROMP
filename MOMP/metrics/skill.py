@@ -2,11 +2,17 @@
 from MOMP.stats.climatology import compute_climatological_onset_dataset
 from MOMP.stats.bins import multi_year_forecast_obs_pairs, multi_year_climatological_forecast_obs_pairs
 from MOMP.stats.score import calculate_brier_score, calculate_auc, calculate_rps, calculate_brier_score_climatology, calculate_auc_climatology, calculate_skill_scores
+from MOMP.utils.printing import tuple_to_str
+from MOMP.io.output import save_ref_score_results, load_ref_score_results
 
-def create_score_results(BSS, RPS, AUC, skill_score, ref_model, ref_model_dir,
-                         years, years_clim, model, model_forecast_dir, obs_dir, thres_file
-                         members, max_forecast_day, day_bins, date_filter_year,
-                         file_pattern, mok, **kwargs):
+def create_score_results(*, BSS, RPS, AUC, skill_score, 
+                         ref_model, ref_model_dir, ref_model_var, ref_model_file_pattern, ref_model_unit_cvt,
+                         years, years_clim, obs_dir, obs_file_pattern, obs_var,
+                         thresh_file, thresh_var, wet_threshold,
+                         date_filter_year, init_days, start_date, end_date,
+                         model_dir, model_var, unit_cvt, file_pattern,
+                         wet_init, wet_spell, dry_spell, dry_threshold, dry_extent, fallback_date, mok,
+                         members, onset_percentage_threshold, max_forecast_day, day_bins, **kwargs):
 
 #    print("="*60)
 #    print("S2S MONSOON ONSET SKILL SCORE ANALYSIS")
@@ -34,46 +40,88 @@ def create_score_results(BSS, RPS, AUC, skill_score, ref_model, ref_model_dir,
     results["BSS_ref"], results["RPS_ref"], results["AUC_ref"] = None, None, None
     results['skill_score'] = None
 
+    # check if ref_results exist
+    #dir_out = kwargs.get("dir_out")
+    #model = kwargs.get("model")
+    ##verification_window = kwargs.get("verification_window")
+    ##filename = f'ref_scores_{model}_{tuple_to_str(verification_window)}window_{max_forecast_day}day.csv'
+    #filename = f'ref_scores_{model}_{max_forecast_day}day.csv'
+    #filename = os.path.join(dir_out, f"{filename}.pkl")
+
+    #if filename.exists():
+    #    results = load_ref_score_results(filename, results)
+    #    if skill_score:
+    #        skill_results = calculate_skill_scores(
+    #        results["BSS"], results["RPS"],
+    #        results["BSS_ref"], results["RPS_ref"]
+    #        )
+    #        results["skill_results"] = skill_results
+    #    return results
+
     if ref_model == "climatology":
 
         clim_onset = compute_climatological_onset_dataset(**kwargs)
-        climatology_obs_df = multi_year_climatological_forecast_obs_pairs(**kwargs)
+        climatology_obs_df = multi_year_climatological_forecast_obs_pairs(clim_onset, **kwargs)
         results["climatology_obs_df"] = climatology_obs_df
         
         if BSS:
             brier_ref = calculate_brier_score_climatology(climatology_obs_df)
             results["BSS_ref"] = brier_ref
+        else:
+            results["BSS_ref"] = None
         
         if RPS:
             rps_ref = calculate_rps(climatology_obs_df)
             results["RPS_ref"] = rps_ref
+        else:
+            results["RPS_ref"] = None
 
         if AUC:
             auc_ref = calculate_auc_climatology(climatology_obs_df)
             results["AUC_ref"] = auc_ref
+        else:
+            results["AUC_ref"] = None
 
     else:
-        kwargs_ref = {**kwargs, 'model_forecast_dir': ref_model_dir}
+        results["climatology_obs_df"] = None
+
+        kwargs_ref = {**kwargs,
+                      'model': ref_model,
+                      'model_dir': ref_model_dir,
+                      'model_var': ref_model_var,
+                      'file_pattern': ref_model_file_pattern,
+                      'unit_cvt': ref_model_unit_cvt
+                      }
+
         ref_obs_df = multi_year_forecast_obs_pairs(**kwargs_ref)
 
         if BSS:
             brier_ref = calculate_brier_score(ref_obs_df)
             results["BSS_ref"] = brier_ref
+        else:
+            results["BSS_ref"] = None
         
         if RPS:
             rps_ref = calculate_rps(ref_obs_df)
             results["RPS_ref"] = rps_ref
+        else:
+            results["RPS_ref"] = None
 
         if AUC:
             auc_ref = calculate_auc(ref_obs_df)
             results["AUC_ref"] = auc_ref
+        else:
+            results["AUC_ref"] = None
+
+
+    #save_ref_score_results(results, filename)
 
 
     if skill_score:
 
         skill_results = calculate_skill_scores(
-        brier_forecast, rps_forecast,
-        brier_ref, rps_ref
+        results["BSS"], results["RPS"],
+        results["BSS_ref"], results["RPS_ref"]
         )
 
         results["skill_results"] = skill_results

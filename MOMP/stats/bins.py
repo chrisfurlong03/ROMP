@@ -1,9 +1,19 @@
 from MOMP.io.input import load_thresh_file, get_initialization_dates
-from MOMP.io.input import get_forecast_probabilistic_twice_weekly, get_forecast_deterministic_twice_weekly
+from MOMP.io.input import get_forecast_probabilistic_twice_weekly
 from MOMP.io.input import load_imd_rainfall
 from MOMP.stats.detect import detect_observed_onset, compute_onset_for_all_members
-from MOMP.stats.climatology import compute_climatological_onset_dataset
+#from MOMP.stats.climatology import compute_climatological_onset_dataset
 
+
+def extract_day_range(bin_label):
+    """ extract the start day of each bin for sorting purpose """
+    if 'Days ' in bin_label:
+        try:
+            day_part = bin_label.replace('Days ', '').split('-')[0]
+            return int(day_part)
+        except:
+            return 999
+    return 999
 
 
 def get_target_bins(brier_forecast, brier_climatology):
@@ -18,15 +28,6 @@ def get_target_bins(brier_forecast, brier_climatology):
             not bin_label.startswith('After') and
             not bin_label.startswith('Before')):
             target_bins.append(bin_label)
-
-    def extract_day_range(bin_label):
-        if 'Days ' in bin_label:
-            try:
-                day_part = bin_label.replace('Days ', '').split('-')[0]
-                return int(day_part)
-            except:
-                return 999
-        return 999
 
     return sorted(target_bins, key=extract_day_range)
 
@@ -172,7 +173,7 @@ def create_forecast_observation_pairs_with_bins(onset_all_members, onset_da, *, 
 
 ## This function creates forecast-observation pairs using climatological ensemble where each year is a member
 def create_climatological_forecast_obs_pairs(clim_onset, target_year, init_dates, *, 
-                                             day_bins, max_forecast_day, mok, **kwargs):
+                                             day_bins, max_forecast_day, **kwargs):
     """
     Create forecast-observation pairs using climatological ensemble where each year is a member.
     Uses day-of-year instead of calendar dates for onset comparison.
@@ -190,8 +191,9 @@ def create_climatological_forecast_obs_pairs(clim_onset, target_year, init_dates
         e.g., [(1, 5), (6, 10), (11, 15)]
     max_forecast_day : int, default=15
         Maximum forecast day
-    mok : bool, default=True
-        Whether to use MOK date filter (June 2nd)
+
+    #mok : bool, default=True
+    #    Whether to use MOK date filter (June 2nd)
 
     Returns:
     --------
@@ -217,7 +219,7 @@ def create_climatological_forecast_obs_pairs(clim_onset, target_year, init_dates
     print(f"Using {len(ensemble_years)} years as ensemble members: {ensemble_years}")
     print(f"Processing {len(init_dates)} initialization dates")
     print(f"Day bins: {day_bins}")
-    print(f"Extended bins include: 'Before initialization' and 'After day {max_forecast_day}'")
+    print(f"Extended bins include: 'Before initialization' and 'After day {max_forecast_day}' ")
     print(f"Using day-of-year method for onset comparison")
 
     # Get the actual lat/lon coordinates from the data
@@ -424,10 +426,10 @@ def create_climatological_forecast_obs_pairs(clim_onset, target_year, init_dates
 
 
 # This function creates the observed forecast pairs for multiple years (core monsoon zone grids) and combines them
-def multi_year_forecast_obs_pairs(years, *, model_dir, obs_dir, obs_file_pattern, obs_var,
+def multi_year_forecast_obs_pairs(*, years, obs_dir, obs_file_pattern, obs_var,
                                   thresh_file, thresh_var, wet_threshold,
                                   date_filter_year, init_days, start_date, end_date,
-                                  model_var, unit_cvt, file_pattern,
+                                  model_dir, model_var, unit_cvt, file_pattern,
                                   wet_init, wet_spell, dry_spell, dry_threshold, dry_extent, fallback_date, mok,
                                   members, onset_percentage_threshold, max_forecast_day, day_bins, **kwargs):
     """Main function to perform multi-year reliability analysis."""
@@ -505,7 +507,7 @@ def multi_year_forecast_obs_pairs(years, *, model_dir, obs_dir, obs_file_pattern
 
 
 
-def multi_year_climatological_forecast_obs_pairs(clim_onset, years_clim, day_bins, members, model_dir, date_filter_year=2024, max_forecast_day=15, mok=True, **kwargs):
+def multi_year_climatological_forecast_obs_pairs(clim_onset, *, years_clim, day_bins, max_forecast_day, date_filter_year, init_days, start_date, end_date, **kwargs):
     """
     Create climatological forecast-observation pairs for multiple target years.
 
@@ -519,8 +521,8 @@ def multi_year_climatological_forecast_obs_pairs(clim_onset, years_clim, day_bin
         List of (start_day, end_day) tuples for bins
     max_forecast_day : int, default=15
         Maximum forecast day
-    mok : bool, default=True
-        Whether to use MOK date filter
+    #mok : bool, default=True
+    #    Whether to use MOK date filter
 
     Returns:
     --------

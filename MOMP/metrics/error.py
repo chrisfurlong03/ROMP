@@ -1,5 +1,6 @@
 #from MOMP.stats.benchmark import 
 import xarray as xr
+import pandas as pd
 
 
 def create_spatial_far_mr_mae(metrics_df_dict, onset_da_dict):

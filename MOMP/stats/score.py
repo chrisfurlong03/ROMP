@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from MOMP.stats.bins import extract_day_range
 
 
 # Function to calculate Brier Score and Fair Brier Score for the model forecasts (both overall and bin-wise)
@@ -489,15 +490,16 @@ def calculate_skill_scores(brier_forecast, rps_forecast,
             excluded_bins.append(bin_label)
     
     # Sort bins by their day ranges
-    def extract_day_range(bin_label):
-        # Extract the start day from "Days X-Y" format
-        if 'Days ' in bin_label:
-            try:
-                day_part = bin_label.replace('Days ', '').split('-')[0]
-                return int(day_part)
-            except:
-                return 999  # Put unparseable bins at the end
-        return 999
+    # function extract_day_range already defined in stats.bins, import from there
+    #def extract_day_range(bin_label):
+    #    # Extract the start day from "Days X-Y" format
+    #    if 'Days ' in bin_label:
+    #        try:
+    #            day_part = bin_label.replace('Days ', '').split('-')[0]
+    #            return int(day_part)
+    #        except:
+    #            return 999  # Put unparseable bins at the end
+    #    return 999
     
     target_bins = sorted(target_bins, key=extract_day_range)
     

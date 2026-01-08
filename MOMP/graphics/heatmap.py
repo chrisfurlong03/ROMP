@@ -1,9 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 from MOMP.stats.bins import get_target_bins
 
-def create_heatmap(score_results, model, max_forecast_day):
+
+def create_heatmap(score_results, *, model, max_forecast_day, dir_fig, **kwargs):
     """Create and save skill score heatmap"""
 
     auc_forecast =score_results['AUC']
@@ -73,6 +75,7 @@ def create_heatmap(score_results, model, max_forecast_day):
 
     # Save with model name and forecast days
     figure_filename = f'skill_scores_heatmap_{model}_{max_forecast_day}day.png'
+    figure_filename = os.path.join(dir_fig, figure_filename)
     plt.savefig(figure_filename, dpi=300, bbox_inches='tight')
     plt.close()
 

@@ -1,6 +1,6 @@
 from MOMP.io.input import load_imd_rainfall, load_thresh_file, get_initialization_dates
 from MOMP.stats.detect import detect_observed_onset
-from MOMP.stats.benchmark import compute_onset_metrics_with_windows
+#from MOMP.stats.benchmark import compute_onset_metrics_with_windows
 
 import numpy as np
 import xarray as xr
@@ -15,20 +15,22 @@ from datetime import datetime, timedelta
 #import matplotlib.patches as patches
 
 
-def compute_climatological_onset(*, obs_dir, thres_file, mok, years_clim, obs_file_pattern, obs_var, **kwargs):
+def compute_climatological_onset(*, obs_dir, obs_file_pattern, obs_var, thresh_file, thresh_var, wet_threshold, 
+                                  wet_init, wet_spell, dry_spell, dry_threshold, dry_extent, start_date, 
+                                 fallback_date, mok, years_clim, **kwargs):
     """
     Compute climatological onset dates from all available IMD files.
     
     Parameters:
     obs_dir: str, folder containing IMD NetCDF files
-    thres_file: str, path to threshold file
+    thresh_file: str, path to threshold file
     mok: bool, if True use June 2nd as start date (MOK), if False use May 1st
     
     Returns:
     climatological_onset_doy: xarray DataArray with climatological onset day of year
     """
     
-    thres_da = load_thresh_file(thresh_file, **kwargs)
+    thresh_da = load_thresh_file(thresh_file, **kwargs)
     
     print(f"Computing climatological onset from {len(years_clim)} years_clim: {min(years_clim)}-{max(years_clim)}")
     
@@ -40,7 +42,7 @@ def compute_climatological_onset(*, obs_dir, thres_file, mok, years_clim, obs_fi
             rainfall_ds = load_imd_rainfall(year, **kwargs)
             
             # Detect onset for this year
-            onset_da = detect_observed_onset(rainfall_ds, thres_da, year, mok=mok, **kwargs)
+            onset_da = detect_observed_onset(rainfall_ds, thresh_da, year, **kwargs)
             
             # Convert onset dates to day of year
             onset_doy = onset_da.dt.dayofyear.astype(float)
@@ -68,7 +70,7 @@ def compute_climatological_onset(*, obs_dir, thres_file, mok, years_clim, obs_fi
 
 
 def compute_climatology_as_forecast(climatological_onset_doy, year, init_dates, observed_onset_da,
-                                   max_forecast_day=30, mok=mok, **kwargs):
+                                   *, max_forecast_day, mok, **kwargs):
     """
     Use climatology as a forecast model for the given initialization dates.
     Only processes forecasts initialized before the observed onset date.
@@ -85,7 +87,7 @@ def compute_climatology_as_forecast(climatological_onset_doy, year, init_dates, 
     pandas DataFrame with climatology forecast results
     """
     
-    mok = kwargs['mok']
+    #mok = kwargs['mok']
 
     results_list = []
     
@@ -215,7 +217,9 @@ def compute_climatology_as_forecast(climatological_onset_doy, year, init_dates, 
 ###=========  for bin climatology ============
 
 ## This function computes onset dates for all available years in IMD folder and creates a climatological onset dataset
-def compute_climatological_onset_dataset(obs_dir, thresh_file, years_clim, mok, **kwargs):
+def compute_climatological_onset_dataset(*, obs_dir, obs_file_pattern, obs_var, thresh_file, thresh_var, wet_threshold,
+                                  wet_init, wet_spell, dry_spell, dry_threshold, dry_extent, start_date,
+                                 fallback_date, mok, years_clim, **kwargs)
     """
     Compute onset dates for all available years in IMD folder and create a climatological dataset.
 
@@ -237,11 +241,11 @@ def compute_climatological_onset_dataset(obs_dir, thresh_file, years_clim, mok, 
     """
 
     #years = kwargs['years']
-    years = years_clim
+    #years = years_clim
 
-    thres_slice = load_thresh_file(thresh_file, **kwargs)
+    thresh_slice = load_thresh_file(thresh_file, **kwargs)
 
-    print(f"Computing climatological onset from {len(years)} years: {min(years)}-{max(years)}")
+    print(f"Computing climatological onset from {len(years_clim)} years_clim: {min(years_clim)}-{max(years_clim)}")
 
     # Initialize lists to store results
     onset_arrays = []
@@ -249,17 +253,17 @@ def compute_climatological_onset_dataset(obs_dir, thresh_file, years_clim, mok, 
 #    all_onset_days = []
 
     # Process each year
-    for year in years:
+    for year in years_clim:
         print(f"\nProcessing year {year}...")
 
         try:
             # Load rainfall data for this year
-            rainfall_ds = load_imd_rainfall(year, obs_dir)
+            rainfall_ds = load_imd_rainfall(year, **kwargs)
 
             # Select the same spatial domain as thresh_slice
             rainfall_slice = rainfall_ds
             # Detect onset for this year
-            onset_da = detect_observed_onset(rainfall_slice, thresh_slice, year, mok=mok)
+            onset_da = detect_observed_onset(rainfall_slice, thresh_slice, year, **kwargs)
 
             # Count valid onsets
             valid_onsets = (~pd.isna(onset_da.values)).sum()
@@ -292,7 +296,7 @@ def compute_climatological_onset_dataset(obs_dir, thresh_file, years_clim, mok, 
         name='climatological_onset_dates',
         attrs={
             'description': 'Onset dates for climatological ensemble',
-            'method': 'MOK (June 2nd filter)' if mok else 'no date filter',
+            'method': 'MOK {mok} filter' if mok else 'no date filter',
             'years_processed': valid_years,
             'total_years': len(valid_years)
         }
@@ -308,7 +312,7 @@ def compute_climatological_onset_dataset(obs_dir, thresh_file, years_clim, mok, 
     print(f"Years processed: {len(valid_years)} ({min(valid_years)}-{max(valid_years)})")
     print(f"Spatial domain: {len(thresh_slice.lat)} lats x {len(thresh_slice.lon)} lons")
     print(f"Total valid onsets: {total_valid:,}/{total_possible:,} ({total_valid/total_possible:.1%})")
-    print(f"Method: {'MOK (June 2nd filter)' if mok else 'No date filter'}")
+    print(f"Method: {'MOK ({mok} filter)' if mok else 'No date filter'}")
 
     # Show onset statistics by year
     print(f"\nOnset statistics by year:")

@@ -6,7 +6,7 @@ from MOMP.params.region_def import polygon_boundary
 from MOMP.utils.land_mask import get_india_outline
 
 
-def plot_spatial_metrics(spatial_metrics, shpfile=None, figsize=(18, 6), dir_fig="figure", case_name=None, **kwargs):
+def plot_spatial_metrics(spatial_metrics, *, shpfile, dir_fig, case_name, figsize=(18, 6), **kwargs):
     """
     Plot spatial maps of Mean MAE, False Alarm Rate, and Miss Rate in a 1x3 subplot
     with India outline, CMZ polygon, grid values displayed, and CMZ averages.

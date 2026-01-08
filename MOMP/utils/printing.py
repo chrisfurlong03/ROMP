@@ -13,3 +13,6 @@ def combi_to_str(combi, sep="_", tuple_sep="-", suffix=""):
             parts.append(str(item))
     return sep.join(parts) + suffix
 
+
+def tuple_to_str(item):
+    return "-".join(map(str, item))

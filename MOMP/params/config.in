@@ -9,11 +9,13 @@ obs = "IMD"
 obs_dir = 'data'
 obs_file_pattern = ("{}.nc", "data_{}.nc")
 obs_var = "RAINFALL"
+obs_unit_cvt = None
 
 ref_model = "climatology"
 ref_model_dir = 'data/ref' # reference forecast model if not climatology
 ref_model_file_pattern = ("{}.nc", "data_{}.nc")
 ref_model_var = "RAINFALL"
+ref_model_unit_cvt = None
 
 thresh_file = "data/mwset2x2.nc4 " # set to None if using scalar threshold
 thresh_var = "MWmean"
