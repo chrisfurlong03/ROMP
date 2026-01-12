@@ -1,4 +1,4 @@
-import xcdat as xc
+#import xcdat as xc
 import xarray as xr
 import numpy as np
 from MOMP.params.region_def import domain
@@ -13,6 +13,73 @@ from MOMP.params.region_def import domain
 #        lone = 48
 #
 #    return lats, latn, lonw, lone
+
+def swap_lon_axis(
+    dataset: xr.Dataset, to: tuple[float, float], sort_ascending: bool = True
+) -> xr.Dataset:
+    """Swaps the orientation of a dataset's longitude axis.
+
+    This is an API adopted from the xCDAT package 
+    (https://xcdat.readthedocs.io/en/latest/index.html)
+    (https://xcdat.readthedocs.io/en/latest/_modules/xcdat/axis.html#swap_lon_axis)
+
+    This method also swaps the axis orientation of the longitude bounds if it
+    exists. Afterwards, it sorts longitude and longitude bounds values in
+    ascending order.
+
+    Note, based on how datasets are chunked, swapping the longitude dimension
+    and sorting might raise ``PerformanceWarning: Slicing is producing a
+    large chunk. To accept the large chunk and silence this warning, set the
+    option...``. This function uses xarray's arithmetic to swap orientations,
+    so this warning seems potentially unavoidable.
+
+    Parameters
+    ----------
+    dataset : xr.Dataset
+         The Dataset containing a longitude axis.
+    to : tuple[float, float]
+        The orientation to swap the Dataset's longitude axis to. Supported
+        orientations include:
+
+        * (-180, 180): represents [-180, 180) in math notation
+        * (0, 360): represents [0, 360) in math notation
+    sort_ascending : bool
+        After swapping, sort in ascending order (True), or keep existing order
+        (False).
+
+    Returns
+    -------
+    xr.Dataset
+        The Dataset with swapped lon axes orientation.
+    """
+    ds = dataset.copy()
+    coords = get_dim_coords(ds, "X").coords
+    coord_keys = list(coords.keys())
+
+    # Attempt to swap the orientation for longitude coordinates.
+    for key in coord_keys:
+        new_coord = _swap_lon_axis(ds.coords[key], to)
+
+        if ds.coords[key].identical(new_coord):
+            continue
+
+        ds.coords[key] = new_coord
+
+    try:
+        bounds = ds.bounds.get_bounds("X")
+    except KeyError:
+        bounds = None
+
+    if isinstance(bounds, xr.DataArray):
+        ds = _swap_lon_bounds(ds, str(bounds.name), to)
+    elif isinstance(bounds, xr.Dataset):
+        for key in bounds.data_vars.keys():
+            ds = _swap_lon_bounds(ds, str(key), to)
+
+    if sort_ascending:
+        ds = ds.sortby(list(coords.dims), ascending=True)
+
+    return ds
 
 
 def lon_swap(ds_tag, *, region, **kwargs):
@@ -41,12 +108,14 @@ def lon_swap(ds_tag, *, region, **kwargs):
         # print('lonw > lone, then swap')
 
         if np.min(ds_tag.lon) < 0:
-            ds_tag = xc.swap_lon_axis(ds_tag, (0, 360)).compute()
+            #ds_tag = xc.swap_lon_axis(ds_tag, (0, 360)).compute()
+            ds_tag = swap_lon_axis(ds_tag, (0, 360)).compute()
             lonw = lonw % 360
             lone = lone % 360
             # print('swapped lonw = ',lonw,' lone = ',lone)
         else:
-            ds_tag = xc.swap_lon_axis(ds_tag, (-180, 180)).compute()
+            #ds_tag = xc.swap_lon_axis(ds_tag, (-180, 180)).compute()
+            ds_tag = swap_lon_axis(ds_tag, (-180, 180)).compute()
             lonw = ((lonw + 180) % 360) - 180
             lone = ((lone + 180) % 360) - 180
             # print('swapped lonw = ',lonw,' lone = ',lone)

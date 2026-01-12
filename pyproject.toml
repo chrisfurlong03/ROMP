@@ -1,4 +1,40 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "my-ultra-minimal-package"
+name = "MOMP"
 version = "0.0.1"
-description = "The absolute simplest pyproject.toml example."
+description = "Monsoon Onset Metrics Package (MOMP)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+
+authors = [
+  { name = "Bo Dong", email = "bodong@uchicago.edu" }
+]
+
+dependencies = [
+  "numpy",
+  "pandas",
+  "xarray",
+  "matplotlib",
+  "geopandas",
+  "netcdf4",
+  "scipy",
+  "seaborn",
+]
+
+[project.optional-dependencies]
+dev = [
+#  "pathlib",
+#  "argparse",
+  "pytest",
+  "black",
+  "ruff",
+  "ipython",
+]
+
+[project.scripts]
+momp-run = "MOMP.driver:run_MOMP"
+

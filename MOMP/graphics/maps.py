@@ -31,9 +31,6 @@ def plot_spatial_metrics(spatial_metrics, *, case_name, shpfile_dir, polygon, di
     if polygon:
         polygon1_lat, polygon1_lon = polygon_boundary(mean_mae)
 
-        print("\nXXXXX polygon1_lat, ", polygon1_lat)
-        print("\nXXXXX polygon1_lon, ", polygon1_lon)
-
     #if polygon1_lat and polygon1_lon:
     if len(polygon1_lat) > 0 and len(polygon1_lon) > 0:
         polygon_defined = True
