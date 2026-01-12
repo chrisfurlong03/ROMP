@@ -49,10 +49,10 @@ This option is a lightweight setup which isolates project dependencies assuming 
 
 This option is good if you work with **NetCDF, HDF5, or other system-level scientific libraries**,and if your workload is not heavy. 
 
-1. `conda create -n momp "python>=3.10`
+1. `conda create -n momp "python>=3.10"`
 Create a New Conda Environment
 
-2. `conda activate myenv`
+2. `conda activate momp`
 Activate the environment:
 
 3. `pip install poetry`
