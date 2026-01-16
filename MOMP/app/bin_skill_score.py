@@ -7,7 +7,8 @@ from MOMP.graphics.reliability import plot_reliability_diagram
 from MOMP.io.output import save_score_results
 from MOMP.lib.control import iter_list, make_case
 from MOMP.lib.convention import Case
-from MOMP.lib.loader import cfg, setting
+#from MOMP.lib.loader import cfg, setting
+from MOMP.lib.loader import get_cfg, get_setting
 
 
 #def bin_skill_score(BSS, RPS, AUC, skill_score, ref_model, ref_model_dir,
@@ -15,6 +16,8 @@ from MOMP.lib.loader import cfg, setting
 #                         members, max_forecast_day, day_bins, date_filter_year,
 #                         file_pattern, mok, save_csv_score, plot_heatmap, **kwargs):
 
+cfg=get_cfg()
+setting=get_setting()
 
 def skill_score_in_bins(cfg=cfg, setting=setting):
 

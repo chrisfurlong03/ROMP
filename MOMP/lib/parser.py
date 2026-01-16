@@ -1,7 +1,8 @@
 import argparse
 #from pathlib import Path
 
-def create_parser(config):
+def create_parser(config, cli_args=None):
+
     parser = argparse.ArgumentParser()
 
     #parser.add_argument("-p", "--param", required=True)
@@ -19,6 +20,20 @@ def create_parser(config):
         nargs="+",
         default=config["model_list"],
         help=f"Model list (default: {config['model_list']})"
+    )
+
+    parser.add_argument(
+        "--wet_threshold",
+        type=float,
+        default=10,
+        help="Wet threshold value (default: 10)"
+    )
+
+    parser.add_argument(
+        "--wet_spell",
+        type=int,
+        default=5,
+        help="Wet spell days (default: 5)"
     )
 
 #    parser.add_argument(
@@ -45,7 +60,14 @@ def create_parser(config):
 #    )
 
 
-    args = parser.parse_args()
+    #args = parser.parse_args()
+    #args, unknown = parser.parse_known_args()
+
+    # cli_args can be passed explicitly; if None, default to sys.argv
+    if cli_args is None:
+        args, unknown = parser.parse_known_args()
+    else:
+        args, unknown = parser.parse_known_args(cli_args)
 
     # ---- Convert list → tuple if needed ----
     # Only convert if user supplied; default already tuple

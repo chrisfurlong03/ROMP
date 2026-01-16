@@ -107,7 +107,7 @@ Region boundaries are defined in:
 `params/region_def.py`
 
 ## Run MOMP
-With user-defined `config.in`, the main benchmarking workflow is executed via shell command line:  
+With user-defined `config.in`, the main benchmarking workflow is executed via CLI::  
 
 `momp-run`
 

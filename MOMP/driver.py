@@ -16,7 +16,8 @@ import sys
 import traceback
 
 # Local Package Imports
-from MOMP.lib.loader import cfg, setting
+#from MOMP.lib.loader import cfg, setting
+from MOMP.lib.loader import get_cfg, get_setting
 from MOMP.app.bin_skill_score import skill_score_in_bins
 from MOMP.app.spatial_far_mr_mae import spatial_far_mr_mae_map
 from MOMP.utils.printing import print_momp_banner
@@ -38,7 +39,10 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+cfg=get_cfg()
+setting=get_setting()
 
+#def run_momp(cfg=get_cfg(), setting=get_setting()):
 def run_momp(cfg=cfg, setting=setting):
     """
     Executes the standard MOMP evaluation workflow.

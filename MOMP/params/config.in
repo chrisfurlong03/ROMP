@@ -25,7 +25,7 @@ model_list = ("AIFS",)
 obs = "IMD"
 
 # Root directory for observational NetCDF files.
-obs_dir = "data/obs"
+obs_dir = "/Users/bodong/Code/dev_tmp/4x4/obs"
 
 # Pattern to find files. {} is replaced by date/year components.
 obs_file_pattern = ("{}.nc", "data_{}.nc")
@@ -43,7 +43,7 @@ obs_unit_cvt = None
 ref_model = "climatology"
 
 # Directory for the reference model data.
-ref_model_dir = "data/obs"
+ref_model_dir = "/Users/bodong/Code/dev_tmp/4x4/obs"
 
 # File naming pattern for the reference model.
 ref_model_file_pattern = ("{}.nc", "data_{}.nc")
@@ -58,7 +58,7 @@ ref_model_unit_cvt = None
 # 4. FORECAST MODEL SETTINGS
 # ------------------------------------------------------------------------------
 # List of directories corresponding to the 'model_list'.
-model_dir_list = ("data/aifs",)
+model_dir_list = ("/Users/bodong/Code/dev_tmp/4x4/aifs",)
 
 # Variable names for rainfall in each forecast model (e.g., 'tp' for Total Precip).
 model_var_list = ("tp", "tp")
@@ -182,10 +182,10 @@ save_csv_score = True             # Save skill scores as CSV
 save_nc_climatology = True        # Save calculated climatology to NetCDF
 
 # Graphics configuration
-shpfile_dir = "data/shpfile" # Path to GIS shapefiles
+shpfile_dir = "/Users/bodong/Code/dev_tmp/shpfile" # Path to GIS shapefiles
 polygon = True                                     # Mask/Plot by region polygons
-plot_spatial_far_mr_mae = True                     # Generate spatial maps of metrics
-plot_heatmap = True                                # Generate performance heatmaps
+plot_spatial_far_mr_mae = True                     # Generate spatial maps of far,mr,mae
+plot_heatmap = True                                # Generate score heatmaps
 plot_reliability = True                            # Generate reliability curve plots
 plot_climatology_onset = True                      # Spatial map of climatology onset
 plot_panel_heatmap_error = True                    # panel heatmap of mae,mr,far 

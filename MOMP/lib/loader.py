@@ -93,34 +93,75 @@ dic = {
 #parser = create_parser(dic)
 #args = parser.parse_args()
 
-args = create_parser(dic)
+#----------  this block below doesn't work with jupyter notebook ---------
+#args = create_parser(dic)
+#
+##this block is to test -p param/param_user.py, need #from .parser import find_param_file
+##param_path = find_param_file(args.param)
+##print("\n param_path = ", param_path)
+##spec = importlib.util.spec_from_file_location("param_module", str(param_path))
+##param_module = importlib.util.module_from_spec(spec)
+##spec.loader.exec_module(param_module)
+##print("\n", param_module.json_structure)
+##print("\n", param_module.model_list)
+#
+## 1. Start with the configuration from the file
+#cfg = dic.copy()
+#
+## 2. Get all parsed arguments as a dictionary
+#args_dict = vars(args)
+#
+## 3. Create a dictionary containing ONLY the key/value pairs that exist
+##    in BOTH the parsed arguments AND the original config file (The Controlled Merge)
+#overrides = {
+#    key: value
+#    for key, value in args_dict.items()
+#    if key in cfg # Only update keys that were originally in the config
+#}
+#
+## 4. Apply the overrides
+#cfg.update(overrides)
+#
+#
+#setting = init_dataclass(Setting, cfg)
+#----------  this block above doesn't work with jupyter notebook ---------
 
-#this block is to test -p param/param_user.py, need #from .parser import find_param_file
-#param_path = find_param_file(args.param)
-#print("\n param_path = ", param_path)
-#spec = importlib.util.spec_from_file_location("param_module", str(param_path))
-#param_module = importlib.util.module_from_spec(spec)
-#spec.loader.exec_module(param_module)
-#print("\n", param_module.json_structure)
-#print("\n", param_module.model_list)
 
-# 1. Start with the configuration from the file
-cfg = dic.copy()
-
-# 2. Get all parsed arguments as a dictionary
-args_dict = vars(args)
-
-# 3. Create a dictionary containing ONLY the key/value pairs that exist
-#    in BOTH the parsed arguments AND the original config file (The Controlled Merge)
-overrides = {
-    key: value
-    for key, value in args_dict.items()
-    if key in cfg # Only update keys that were originally in the config
-}
-
-# 4. Apply the overrides
-cfg.update(overrides)
+_cfg = None
+_setting = None
 
 
-setting = init_dataclass(Setting, cfg)
+def build_cfg(cli_args=None):
+    """
+    Build configuration by overlaying CLI arguments on base config.
+    """
+    args = create_parser(dic, cli_args=cli_args)
+
+    cfg = dic.copy()
+    args_dict = vars(args)
+
+    overrides = {
+        key: value
+        for key, value in args_dict.items()
+        if key in cfg and value is not None
+    }
+
+    cfg.update(overrides)
+    return cfg
+
+
+def get_cfg(cli_args=None):
+    global _cfg
+    if _cfg is None:
+        _cfg = build_cfg(cli_args)
+    return _cfg
+
+
+def get_setting(cli_args=None):
+    global _setting
+    if _setting is None:
+        cfg = get_cfg(cli_args)
+        _setting = init_dataclass(Setting,cfg)
+    return _setting
+
 

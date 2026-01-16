@@ -24,6 +24,8 @@ dependencies = [
   "scipy",
   "seaborn",
   "regionmask",
+  "gcsfs",
+  "zarr"
 ]
 
 [project.optional-dependencies]
@@ -31,6 +33,7 @@ dev = [
 #  "pathlib",
 #  "argparse",
   "pytest",
+  "jupyterlab",
   "black",
   "ruff",
   "ipython",

@@ -7,7 +7,8 @@ from MOMP.metrics.error import create_spatial_far_mr_mae
 from MOMP.stats.benchmark import compute_metrics_multiple_years
 from MOMP.lib.control import iter_list, make_case
 from MOMP.lib.convention import Case
-from MOMP.lib.loader import cfg,setting
+#from MOMP.lib.loader import cfg,setting
+from MOMP.lib.loader import get_cfg, get_setting
 from MOMP.graphics.maps import plot_spatial_metrics
 from MOMP.graphics.onset_map import plot_spatial_climatology_onset
 from MOMP.io.output import save_metrics_to_netcdf
@@ -15,6 +16,9 @@ from MOMP.io.output import save_metrics_to_netcdf
 from MOMP.io.output import set_nested
 from MOMP.utils.printing import tuple_to_str_range
 
+
+cfg=get_cfg()
+setting=get_setting()
 
 def spatial_far_mr_mae_map(cfg=cfg, setting=setting):#, **kwargs):
 
