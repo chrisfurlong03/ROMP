@@ -52,6 +52,10 @@ def dim_fmt_model(ds):
         ][0]
         ds = ds.rename({step_coords: "step"})
 
+    # convert TimedeltaIndex to integer (days)
+    if isinstance(ds.indexes["step"], pd.TimedeltaIndex):
+        ds = ds.assign_coords(step=ds.step.dt.days)
+
     return ds
 
 
