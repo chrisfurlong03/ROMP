@@ -1,23 +1,23 @@
 # ==============================================================================
-# Monsoon Onset Metrics Package (MOMP) Configuration
+# Rainy season Onset Metrics Package (ROMP) Configuration
 # Version: 0.0.1
-# Description: Workflow configuration for evaluating monsoon onset forecast 
+# Description: Workflow configuration for evaluating rainy season onset forecast 
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
 # 1. CORE STRUCTURE & DIMENSIONS
 # ------------------------------------------------------------------------------
-project_name = "test MOMP run with sample data"
+project_name = "test ROMP run with sample data"
 
-# Internal data layout (e.g., dimensions in the processed case).
-# Frozen with major MOMP version
+# Internal benchmarking workflow layout (e.g., dimensions in the processed case).
+# Frozen with major ROMP versions
 layout = ("model", "verification_window")
 
 # List of models to process (e.g., "AIFS", "IFS", "NGCM").
-# Must be models from the same category, e.g., all probabilistic models
+# Must be in same forecast category, e.g., all probabilistic models
 # for all parameters ending in '_list', keep the trailing comma if only one item
-# the number of entries in '_list' should be consistent with model_list
-model_list = ("AIFS",)
+# the number of entries in '*_list' should be consistent with 'model_list'
+model_list = ("IFS", "NGCM")
 
 # ------------------------------------------------------------------------------
 # 2. OBSERVATION DATA SETTINGS
@@ -34,7 +34,7 @@ obs_file_pattern = ("{}.nc", "data_{}.nc")
 # Variable name for rainfall in the NetCDF file.
 obs_var = "RAINFALL"
 
-# Multiplier for unit conversion (e.g., 1000 to convert m to mm). None if no change.
+# Multiplier for unit conversion (e.g., 1000 to convert m to mm). None if no conversion.
 obs_unit_cvt = None
 
 # ------------------------------------------------------------------------------
@@ -59,7 +59,7 @@ ref_model_unit_cvt = None
 # 4. FORECAST MODEL SETTINGS
 # ------------------------------------------------------------------------------
 # List of directories corresponding to the 'model_list'.
-model_dir_list = ("data/aifs",)
+model_dir_list = ("data/ifs", "data/ngcm")
 
 # Variable names for rainfall in each forecast model.
 model_var_list = ("tp", "tp")
@@ -76,19 +76,19 @@ file_pattern_list = ("{}.nc", "{}.nc")
 # Target geographic region for evaluation.
 region = "India"
 
-# Path to a NetCDF file containing spatial thresholds (MWset). None = use scalar.
-thresh_file = "data/mwset4x4.nc4"
-
-# Variable name for the threshold inside the thresh_file.
-thresh_var = "MWmean"
+# shapefile to define region boundary
+shpfile_dir = "data/shpfile" 
+#
+# Mask/boundary as region polygons, if True must define in params/region_def
+polygon = False              
 
 # ------------------------------------------------------------------------------
 # 6. MONSOON ONSET CRITERIA (Physics Logic)
 # ------------------------------------------------------------------------------
-# Rain threshold (mm) to identify the first potential wet day.
+# Rain threshold (mm) to identify the first wet day.
 wet_init = 1
 
-# Rainfall threshold (mm) used only if no spatial thresh_file is provided.
+# Accumlated rainfall threshold (mm) for onset, used only if no spatial thresh_file is provided.
 wet_threshold = 10
 
 # Minimum number of days the accumlated rainfall must stay above threshold (Wet Spell).
@@ -101,8 +101,14 @@ dry_threshold = 5
 dry_spell = 10
 
 # Search window (days) after onset to check for the dry spell. Must be >= dry_spell.
-# set to 0 if monsoon cessation is not part of the search algorithm
+# set to 0 if dry spell is not part of the search algorithm
 dry_extent = 0
+
+# Path to a NetCDF file containing spatial onset thresholds. None = use scalar.
+thresh_file = "data/mwset4x4.nc4"
+
+# Variable name for the threshold inside the thresh_file.
+thresh_var = "MWmean"
 
 # Probability threshold (0.0 - 1.0) for determining onset in ensemble members.
 onset_percentage_threshold = 0.5
@@ -119,27 +125,30 @@ start_year_clim = 2013
 end_year_clim = 2015
 
 # Target date for "Monsoon Onset over a specific location e.g. Kerala" (Month, Day).
-mok = (6, 2)
+# mok = (6, 2) # set to None in current package version
 
 # Specific years to include in the forecast analysis.
+# Optional. to overide consecutive year list generated based on start_date and end_date
 years = (2013, 2014, 2015)
 
 # Specific years used to generate the climatological baseline.
+# Optional. to overide consecutive year list generated based on start_year_clim and end_year_clim
 years_clim = (2013, 2014, 2015)
 
 # Date buffer to search for onset if it occurs before the start_date.
-fallback_date = (4, 1)
+# fallback_date = (4, 1) # set to None in crrent package version.
 
-# List of forecast initialization days (day of week, 0->Monday).
+# List of forecast initialization days of week, (0->Monday, 3->Thursday).
 init_days = (0, 3)
 
-# Year used for filtering or standardizing date formats.
+# Year used for filtering init dates. 
+# e.g., the mm/dd of a Monday in 2024 is considered as init date for all other years
 date_filter_year = 2024
 
 # ------------------------------------------------------------------------------
 # 8. EVALUATION & VERIFICATION PARAMETERS
 # ------------------------------------------------------------------------------
-# Range of days after initialization to consider for validation.
+# Range of days after initialization to consider for evaluation.
 verification_window_list = ((1, 15), (16, 30))
 
 # Allowed error margin (in days) when comparing forecast to obs onset.
@@ -177,14 +186,12 @@ dir_out = "output"
 dir_fig = "figure"
 
 # Save file and figure options
-save_fig = True                   # Generate and save PNG/PDF figures
+save_fig = True                   # Generate and save figures
 save_nc_spatial_far_mr_mae = True # Save spatial metrics as NetCDF
 save_csv_score = True             # Save skill scores as CSV
 save_nc_climatology = True        # Save calculated climatology to NetCDF
 
 # Graphics configuration
-shpfile_dir = "data/shpfile" # Path to GIS shapefiles
-polygon = False              # Mask/Plot by region polygons, must define in params/region_def
 plot_spatial_far_mr_mae = False                     # spatial maps of mae,far,mr
 plot_heatmap = False                                # performance heatmap for single model
 plot_reliability = False                            # reliability curve plots

@@ -24,7 +24,6 @@ dependencies = [
   "scipy",
   "seaborn",
   "regionmask",
-  "gcsfs",
   "zarr",
   "cartopy",
   "fsspec==2025.3.2.*"
@@ -39,6 +38,7 @@ dev = [
   "black",
   "ruff",
   "ipython",
+  "gcsfs",
 ]
 
 [project.scripts]
