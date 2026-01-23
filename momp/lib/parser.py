@@ -24,10 +24,12 @@ def create_parser(config, cli_args=None):
 
     parser.add_argument(
         "--verification_window_list",
-        nargs=2,
-        type=int,
-        action="append",
-        metavar=("START", "END"),
+        #nargs=2,
+        #type=int,
+        #action="append",
+        #metavar=("START", "END"),
+        type=parse_window_list,
+        default=((1, 15), (16, 20)),
         help="Verification window as start end day (efault: {config['verification_window_list']})"
     )
 
@@ -88,6 +90,19 @@ def create_parser(config, cli_args=None):
 
 #    return parser
     return args
+
+
+
+def parse_window_list(string):
+    """
+    Converts a string input like '1,15 16,20' into ((1, 15), (16, 20))
+    """
+    try:
+        # Split by space to get individual pairs, then split by comma
+        pairs = [tuple(map(int, p.split(','))) for p in string.split()]
+        return tuple(pairs)
+    except Exception:
+        raise argparse.ArgumentTypeError("Window list must be in format 'start,end start,end' (e.g., '1,15 16,20')")
 
 
 #reserved for python -p option in loader.py need from pathlib import Path 
