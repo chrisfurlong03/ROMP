@@ -12,6 +12,7 @@ from .parser import create_parser
 #from .parser import find_param_file
 
 from types import SimpleNamespace
+from momp.lib.assertion import ROMPValidator, ROMPConfigError
 
 
 package = "momp"
@@ -194,6 +195,14 @@ def get_cfg(cli_args=None):
     global _cfg
     if _cfg is None:
         _cfg = build_cfg(cli_args)
+
+    try:
+        validator = ROMPValidator(_cfg)
+        validator.validate()
+        print("Configuration validated!")
+    except ROMPConfigError as e:
+        print(e)
+
     #return _cfg
     return SimpleNamespace(**_cfg)
 
