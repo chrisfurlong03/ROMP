@@ -14,10 +14,12 @@ from matplotlib import colors as mcolors
 from momp.utils.visual import cbar_season, set_basemap
 from momp.utils.land_mask import shp_outline, shp_mask, add_polygon
 from momp.graphics.func_map import spatial_metrics_map
+from momp.utils.visual import box_boundary
+
 
 def plot_spatial_climatology_onset(onset_da_dict, *, years_clim, shpfile_dir, polygon, dir_fig, 
                                    region, figsize=(18, 6), cbar_ssn=False, domain_mask=False, 
-                                   show_plot=True, **kwargs):
+                                   show_plot=True, rect_box=False, **kwargs):
     """
     Plot spatial maps of climatology onset day of year
     """
@@ -148,14 +150,19 @@ def plot_spatial_climatology_onset(onset_da_dict, *, years_clim, shpfile_dir, po
     #ax.set_xlabel('Longitude', fontsize=12)
     #ax.set_ylabel('Latitude', fontsize=12)
     
+    if rect_box:
+        box_boundary('rect_boundary', ax, edgecolor='black', linewidth=2,
+                    linestyle='-', fill=False, alpha=1.0,
+                    zorder=20)
+
     plt.tight_layout()
     
     # Save if path provided
     if dir_fig:
         plot_filename = f"climatology_onset_{tuple_to_str_range(years_clim)}.png"
         plot_path = os.path.join(dir_fig, plot_filename)
-        #plt.savefig(plot_path, dpi=300, bbox_inches='tight')
-        #print(f"Figure saved to: {plot_path}")
+        plt.savefig(plot_path, dpi=300, bbox_inches='tight')
+        print(f"Figure saved to: {plot_path}")
     
     if show_plot:
         plt.show()

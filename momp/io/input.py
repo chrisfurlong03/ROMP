@@ -172,6 +172,7 @@ def get_forecast_probabilistic_twice_weekly(year, *, model_dir, model_var, date_
 
     kwargs = restore_args(get_forecast_probabilistic_twice_weekly, kwargs, locals())
 
+#    print("\n file_pattern =  ", file_pattern)
     fname = file_pattern.format(year)
     file_path = os.path.join(model_dir, fname)
 
@@ -220,7 +221,8 @@ def get_forecast_probabilistic_twice_weekly(year, *, model_dir, model_var, date_
     #print(list(members))
     if members:
         #ds = ds.isel(member = members)
-        ds = ds.isel(member = list(members) )
+        #ds = ds.isel(member = list(members) )
+        ds = ds.sel(member = list(members) )
 
     ds = region_select(ds, **kwargs)
 

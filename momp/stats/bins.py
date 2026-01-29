@@ -478,9 +478,9 @@ def multi_year_forecast_obs_pairs(*, years, obs_dir, obs_file_pattern, obs_var,
                  
     # Process each year
     for year in years:
-        print(f"\n{'='*50}")
+        print(f"\n{'-'*50}")
         print(f"Processing year {year}")
-        print(f"{'='*50}")
+        #print(f"{'='*50}")
                         
         try:            
             # Load model and observation data
@@ -520,9 +520,9 @@ def multi_year_forecast_obs_pairs(*, years, obs_dir, obs_file_pattern, obs_var,
             continue
 
     # Combine all years
-    print(f"\n{'='*50}")
+    print(f"\n{'-'*50}")
     print("Combining all years")
-    print(f"{'='*50}")
+    #print(f"{'='*50}")
 
     if not all_forecast_obs_pairs:
         raise ValueError("No data was successfully processed for any year")
@@ -565,9 +565,9 @@ def multi_year_climatological_forecast_obs_pairs(clim_onset, *, years_clim, day_
     all_forecast_obs_pairs = []
 
     for target_year in years_clim:
-        print(f"\n{'='*50}")
+        print(f"\n{'-'*50}")
         print(f"Processing target year {target_year}")
-        print(f"{'='*50}")
+        #print(f"{'='*50}")
 
         try:
             # Get initialization dates for this year

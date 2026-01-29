@@ -3,6 +3,7 @@ import pandas as pd
 import xarray as xr
 from datetime import datetime
 from momp.utils.practical import restore_args
+from itertools import product
 
 
 #def find_first_true(arr):
@@ -455,9 +456,15 @@ def compute_onset_for_all_members(p_model, thresh_slice, onset_da, *, wet_init, 
     # Get the actual lat/lon coordinates from the data
     lats = p_model.lat.values
     lons = p_model.lon.values
+#    print("XXXXXX lats = ", lats)
+#    print("YYYYYYYY lons = ", lons)
+#    print("len lats  ", len(lats))
+#    print("len lons  ", len(lons))
 
     # Create unique lat-lon pairs (no repetition)
-    unique_pairs = list(zip(lons, lats))
+    #unique_pairs = list(zip(lons, lats))
+    unique_pairs = list(product(lons, lats))
+#    print("ZZZZZZ = ", unique_pairs)
 
     date_method = "MOK {mok}(MM-DD) filter" if mok else "no date filter"
     print(f"Processing {len(init_times)} init times x {len(unique_pairs)} unique locations x {len(members)} members...")
@@ -497,13 +504,16 @@ def compute_onset_for_all_members(p_model, thresh_slice, onset_da, *, wet_init, 
             mok_date = datetime(year, *mok)
 
         # Loop over unique lat-lon pairs only
-        for loc_idx, (lon, lat) in enumerate(unique_pairs):
+        #for loc_idx, (lon, lat) in enumerate(unique_pairs):
+        for lon_idx, lat_idx in product(range(len(lons)), range(len(lats))):
+            lon = lons[lon_idx]
+            lat = lats[lat_idx]
 
             total_potential_forecasts += len(members)
 
             # Get observed onset date for this location
             try:
-                obs_onset = onset_da.isel(lat=loc_idx, lon=loc_idx).values
+                obs_onset = onset_da.isel(lat=lat_idx, lon=lon_idx).values
             except:
                 skipped_no_obs += len(members)
                 continue
@@ -525,7 +535,7 @@ def compute_onset_for_all_members(p_model, thresh_slice, onset_da, *, wet_init, 
 
             # Get threshold for this location
             if not np.isscalar(thresh_slice):
-                thresh = thresh_slice.isel(lat=loc_idx, lon=loc_idx).values
+                thresh = thresh_slice.isel(lat=lat_idx, lon=lon_idx).values
             else:
                 thresh = thresh_slice
 
@@ -541,8 +551,8 @@ def compute_onset_for_all_members(p_model, thresh_slice, onset_da, *, wet_init, 
                     # Extract forecast time series for this member and location
                     forecast_series = p_model.isel(
                         init_time=t_idx,
-                        lat=loc_idx,
-                        lon=loc_idx,
+                        lat=lat_idx,
+                        lon=lon_idx,
                         #member=m_idx,
                         #step=slice(forecast_bin_start, forecast_bin_start + max_steps_needed)
                         ).sel(step=slice(1, max_steps_needed)).sel(member=member).values

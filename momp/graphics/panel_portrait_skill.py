@@ -15,6 +15,7 @@ def panel_portrait_bss_auc(result_binned, *, dir_fig, show_panel=True, **kwargs)
     # load binned BSS, add climatology on top row
     arr, row_labels, col_labels = extract_binned_dict(result_binned, 'Fair_Brier_Skill_Score')
     data = np.vstack([np.zeros(arr.shape[1]), arr])
+    data *= 100
     row_labels = ["Climatology"] + row_labels
 
     fig, ax1, im = portrait_plot(data, col_labels, row_labels, fig=fig, ax=ax1, 

@@ -5,7 +5,7 @@ def dim_fmt(ds):
     coord_list = list(ds.coords.keys())
 
     if "lon" not in coord_list:
-        print("lon NOT in coords  --> ")  # , model_name)
+        #print("lon NOT in coords  --> ")  # , model_name)
         lat_coords = [variable for variable in coord_list if "lat" in variable.lower()][0]
         lon_coords = [variable for variable in coord_list if "lon" in variable.lower()][0]
 
@@ -34,14 +34,14 @@ def dim_fmt_model(ds):
     coord_list = list(ds.coords.keys())
 
     if "lon" not in coord_list:
-        print("lon NOT in coords  --> ")  # , model_name)
+        #print("lon NOT in coords  --> ")  # , model_name)
         lat_coords = [variable for variable in coord_list if "lat" in variable.lower()][0]
         lon_coords = [variable for variable in coord_list if "lon" in variable.lower()][0]
 
         ds = ds.rename({lat_coords: "lat", lon_coords: "lon"})
 
     if "init_time" not in coord_list:
-        print("init_time NOT in coords --> ")  # , model_name)
+        #print("init_time NOT in coords --> ")  # , model_name)
         time_coords = [variable for variable in coord_list if "time" in variable.lower()][0]
         ds = ds.rename({time_coords: "init_time"})
 

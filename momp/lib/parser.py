@@ -176,6 +176,13 @@ def create_parser(config, cli_args=None):
         help="debug model for developers only, True of False (default: {config['debug']})"
     )
 
+    parser.add_argument(
+        "--region",
+        type=str,
+        default=config['region'],
+        help="region as defined in params.region_def (default: {config['region']})"
+    )
+
 #    parser.add_argument(
 #        "--ensemble_list",
 #        nargs="+",
@@ -255,9 +262,9 @@ def parse_window_list(string):
 def str2bool(v):
     if isinstance(v, bool):
         return v
-    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+    if v.lower() in ('yes', 'True', 'true', 't', 'y', '1'):
         return True
-    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+    elif v.lower() in ('no', 'False', 'false', 'f', 'n', '0'):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')

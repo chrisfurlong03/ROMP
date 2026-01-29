@@ -93,6 +93,35 @@ def set_basemap(ax, region, shpfile_dir, polygon, linewidth=1.25, grid=True, lin
 
     return ax, gl
 
+def box_boundary(rect_boundary, ax, *, edgecolor='black', linewidth=2,
+                    linestyle='-', fill=False, alpha=1.0,
+                    zorder=10):
+    """
+    Draw a lat/lon rectangle on a Cartopy GeoAxes.
+    Returns the Rectangle patch.
+    """
+    import matplotlib.patches as mpatches
+    import cartopy.crs as ccrs
+    from momp.params.region_def import domain
+
+    lats, latn, lonw, lone = domain(rect_boundary)
+
+    rect = mpatches.Rectangle(
+        (lonw, lats),
+        lone - lonw,
+        latn - lats,
+        fill=fill,
+        edgecolor=edgecolor,
+        linewidth=linewidth,
+        linestyle=linestyle,
+        alpha=alpha,
+        transform=ccrs.PlateCarree(),
+        zorder=zorder
+    )
+
+    ax.add_patch(rect)
+    return rect
+
 
 def portrait_plot(
     data,

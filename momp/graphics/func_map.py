@@ -14,13 +14,14 @@ from matplotlib import colormaps
 
 from momp.utils.visual import cbar_season, set_basemap
 from momp.utils.land_mask import shp_outline, shp_mask, add_polygon
+from momp.utils.visual import box_boundary
 
 
 def spatial_metrics_map(da, model_name, *, years, shpfile_dir, polygon, dir_fig, region, 
                     fig=None, ax=None, figsize=(8, 6), cmap='YlOrRd', n_colors=10, int_bin=True,
                     onset_plot=False, cbar_ssn=False, domain_mask=False, polygon_only=False,
                     show_ylabel=True, title=None, panel=False, text_scale=1.0, 
-                    vmin=None, vmax=None, **kwargs):
+                    vmin=None, vmax=None, rect_box=False, **kwargs):
     """
     Plot spatial maps of climatology onset day of year
     """
@@ -211,6 +212,13 @@ def spatial_metrics_map(da, model_name, *, years, shpfile_dir, polygon, dir_fig,
                 #verticalalignment='bottom', fontsize=15, fontweight='normal')
                 verticalalignment='bottom', fontsize=text_size*1.0, fontweight='normal')
     
+
+    if rect_box:
+        box_boundary('rect_boundary', ax, edgecolor='black', linewidth=2,
+                    linestyle='-', fill=False, alpha=1.0,
+                    zorder=20)
+
+    plt.tight_layout()
 
     if not panel:
         plt.tight_layout()

@@ -37,7 +37,10 @@ def skill_score_in_bins(cfg=cfg, setting=setting):
     for combi in product(*layout_pool):
         case = make_case(Case, combi, vars(cfg))
 
-        print(f"processing bin skill score for {case.case_name}")
+        print(f"{'='*50}")
+        print(f"processing {case.model} onset evaluation for verification window \
+                {case.verification_window}, case: {case.case_name}")
+        #print(f"processing bin skill score for {case.case_name}")
 
         case_cfg = {**asdict(setting), **asdict(case)}
 #        print("\n\n\n members = ", case_cfg['members'])
