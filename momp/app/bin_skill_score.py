@@ -12,6 +12,11 @@ from momp.lib.convention import Case
 #from momp.lib.loader import cfg, setting
 from momp.lib.loader import get_cfg, get_setting
 #from momp.io.output import set_nested
+from momp.app.ens_spatial_far_mr_mae import ens_spatial_far_mr_mae_map
+from momp.utils.printing import tuple_to_str
+from momp.io.dict import select_key_at_level
+from momp.lib.control import filter_bins_in_window
+from collections import defaultdict
 
 
 #def bin_skill_score(BSS, RPS, AUC, skill_score, ref_model, ref_model_dir,
@@ -29,8 +34,10 @@ def skill_score_in_bins(cfg=cfg, setting=setting):
     if not cfg.probabilistic:
         return
 
-    result_overall = {}
-    result_binned = {}
+    #result_overall = {}
+    #result_binned = {}
+    result_overall = defaultdict(dict)
+    result_binned = defaultdict(dict)
 
     layout_pool = iter_list(vars(cfg))
 
@@ -41,6 +48,9 @@ def skill_score_in_bins(cfg=cfg, setting=setting):
         print(f"processing {case.model} onset evaluation for verification window \
                 {case.verification_window}, case: {case.case_name}")
         #print(f"processing bin skill score for {case.case_name}")
+
+        day_bins_filtered = filter_bins_in_window(case.day_bins, case.verification_window)
+        case.day_bins = day_bins_filtered
 
         case_cfg = {**asdict(setting), **asdict(case)}
 #        print("\n\n\n members = ", case_cfg['members'])
@@ -59,8 +69,9 @@ def skill_score_in_bins(cfg=cfg, setting=setting):
             #save_score_results(score_results, **case_cfg)
             binned_data, overall_scores = save_score_results(score_results, **case_cfg)
 
-        result_binned[case.model] = binned_data
-        result_overall[case.model] = overall_scores
+        window_str = tuple_to_str(case.verification_window)
+        result_binned[case.model][window_str] = binned_data
+        result_overall[case.model][window_str] = overall_scores
         
 
         # heatmap plot
@@ -77,7 +88,7 @@ def skill_score_in_bins(cfg=cfg, setting=setting):
 
     max_forecast_day = cfg.max_forecast_day
 
-    if 2 > 3:
+    if 2 > 1:
         import pickle
         import os
         fout = os.path.join(cfg.dir_out,f"combi_binned_skill_scores_{max_forecast_day}day.pkl")
@@ -88,16 +99,35 @@ def skill_score_in_bins(cfg=cfg, setting=setting):
         with open(fout, "wb") as f:
             pickle.dump(result_overall, f)
 
+    from pprint import pprint
 
     # panel heatmap plot for binned BSS and AUC
     if case_cfg['plot_panel_heatmap_skill']:
-        panel_portrait_bss_auc(result_binned, **case_cfg)
+        #panel_portrait_bss_auc(result_binned, **case_cfg)
+        for verification_window in cfg.verification_window_list:
+            window_str = tuple_to_str(verification_window)
+            # extract dict for specific window only
+            result_binned_window = select_key_at_level(result_binned, 2, window_str)
+            print("\n\n\n result_binned_window = ", result_binned_window)
+            pprint(result_binned_window)
+            panel_portrait_bss_auc(result_binned_window, verification_window, **vars(cfg))
 
     # bar plot for BSS, RPSS, AUC in window
     if case_cfg['plot_bar_bss_rpss_auc']:
         #panel_bar_bss_rpss_auc(result_overall, **case_cfg)
-        panel_bar_bss_rpss_auc(result_overall, **vars(cfg))
+        #panel_bar_bss_rpss_auc(result_overall, **vars(cfg))
+        for verification_window in cfg.verification_window_list:
+            #if verification_window[0] != 1: # RPSS requires integration from 1 to end of window
+            #    continue
+            window_str = tuple_to_str(verification_window)
+            result_overall_window = select_key_at_level(result_overall, 2, window_str)
+            print("\n\n\n result_overall_window = ", result_overall_window)
+            pprint(result_overall_window)
+            panel_bar_bss_rpss_auc(result_overall_window, verification_window, **vars(cfg))
 
+#    # make spatial metrics plot --note it works only for whole country region, not subregion
+#    if case_cfg['plot_spatial_far_mr_mae']:
+#        ens_spatial_far_mr_mae_map()
 
 # ------------------------------------------------------------------------------
 if __name__ == "__main__":
