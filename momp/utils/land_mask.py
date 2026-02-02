@@ -256,7 +256,7 @@ def get_shp(region='Ethiopia', resolution='10m', category='cultural', name='admi
 
 
 def shp_mask(da, region='Ethiopia', resolution='10m', category='cultural', name='admin_0_countries', 
-             return_mask=False):
+             return_mask=False, **kwargs):
     """ Create mask based on country boundaries"""
     from shapely.vectorized import contains
 

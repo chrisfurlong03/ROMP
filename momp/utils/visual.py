@@ -101,10 +101,27 @@ def box_boundary(rect_boundary, ax, *, edgecolor='black', linewidth=2,
     Returns the Rectangle patch.
     """
     import matplotlib.patches as mpatches
-    import cartopy.crs as ccrs
+    #import cartopy.crs as ccrs
     from momp.params.region_def import domain
 
     lats, latn, lonw, lone = domain(rect_boundary)
+
+    # Normalize bounds (safety)
+    lonw, lone = sorted([lonw, lone])
+    lats, latn = sorted([lats, latn])
+
+    # Detect axes type
+    transform = ax.transData  # default: data coords
+
+    try:
+        import cartopy.mpl.geoaxes as cgeo
+        #import cartopy.crs as ccrs
+
+        if isinstance(ax, cgeo.GeoAxes):
+            transform = ccrs.PlateCarree()
+    except ImportError:
+        # Cartopy not installed → silently fall back to data coords
+        pass
 
     rect = mpatches.Rectangle(
         (lonw, lats),
@@ -115,7 +132,7 @@ def box_boundary(rect_boundary, ax, *, edgecolor='black', linewidth=2,
         linewidth=linewidth,
         linestyle=linestyle,
         alpha=alpha,
-        transform=ccrs.PlateCarree(),
+        transform=transform,
         zorder=zorder
     )
 
@@ -556,6 +573,14 @@ def annotate_heatmap(
     # overwritten by textkw.
     kw = dict(horizontalalignment="center", verticalalignment="center")
     kw.update(textkw)
+
+    # adjust annote fontsize according to # of heat blocks
+    total_num = data.size
+    x_num = data.shape[1]
+    fontsize = kw.get('fontsize')
+    #fontsize *= 9/total_num
+    fontsize *= 3/x_num
+    kw.update({'fontsize': fontsize})
 
     # Get the formatter in case a string is supplied
     if isinstance(valfmt, str):
