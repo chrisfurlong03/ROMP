@@ -1,9 +1,10 @@
 import numpy as np
 import pandas as pd
 import xarray as xr
-from datetime import datetime
+from datetime import datetime, timedelta
 from momp.utils.practical import restore_args
 from itertools import product
+import sys
 
 
 #def find_first_true(arr):
@@ -45,7 +46,8 @@ def detect_onset(day, forecast_series, thresh, *, wet_init, wet_spell, dry_spell
 
     #dry_threshold = wet_init # default
 
-    start_idx = day
+    # !!! day start from index 1 in data as step
+    start_idx = day - 1
 
     if dry_extent <= wet_spell:
         end_idx = start_idx + wet_spell
@@ -123,7 +125,8 @@ def detect_onset(day, forecast_series, thresh, *, wet_init, wet_spell, dry_spell
 
 # Function to detect observed onset dates based on rainfall threshold file
 def detect_observed_onset(rain_slice, thresh_slice, year, *, wet_init, wet_spell, 
-                          dry_spell, dry_threshold, dry_extent, start_date, fallback_date, mok, **kwargs):
+                          dry_spell, dry_threshold, dry_extent, start_date, end_date, fallback_date, mok, 
+                          extend_end_day=47, **kwargs):
     """Detect observed onset dates for a given year."""
 
     #window = 5 # 5-day wet spell window
@@ -138,10 +141,16 @@ def detect_observed_onset(rain_slice, thresh_slice, year, *, wet_init, wet_spell
     #fallback_MMDD = kwargs["fallback_date"]
 
     start_MMDD = start_date[1:]
+    end_MMDD = end_date[1:]
     fallback_MMDD = fallback_date
+
+    end_date = datetime(year, *end_MMDD)
+    if extend_end_day:
+        end_date = end_date + timedelta(days=extend_end_day)
 
     # Set start date based on mok flag
     if mok:
+#        print("YESYESYES")
         start_date = datetime(year, *mok)  # MOK date: June 2nd
         date_label = f"{mok[0]:02d}-{mok[1]:02d}"
 
@@ -149,9 +158,17 @@ def detect_observed_onset(rain_slice, thresh_slice, year, *, wet_init, wet_spell
         start_date = datetime(year, *start_MMDD)  # default start_date 
         date_label = f"{start_MMDD[0]:02d}-{start_MMDD[1]:02d}"
 
+#    start_date = datetime(year, *start_MMDD)  # default start_date 
+#    date_label = f"{start_MMDD[0]:02d}-{start_MMDD[1]:02d}"
+
     # Find start date index
     time_dates = pd.to_datetime(rain_slice.time.values)
-    start_idx_candidates = np.where(time_dates > start_date)[0]
+    #start_idx_candidates = np.where(time_dates > start_date)[0]
+    start_idx_candidates = np.where(time_dates >= start_date)[0]
+
+#    print("time_dates ", time_dates)
+#    print("start_dates ", start_date)
+#    print("start_idx_candidates = ", start_idx_candidates)
 
     if len(start_idx_candidates) == 0 and fallback_date:
         print(f"Warning: {date_label} not found in data for year {year}")
@@ -160,10 +177,14 @@ def detect_observed_onset(rain_slice, thresh_slice, year, *, wet_init, wet_spell
         print(f"Using fallback date: April 1st")
     else:
         start_idx = start_idx_candidates[0]
-        print(f"Using {date_label} as start date for onset detection")
+        #print(f"Using {date_label} as start date for onset detection")
 
     # Subset rain_slice from start date onward
-    rain_subset = rain_slice.isel(time=slice(start_idx, None))
+    #rain_subset = rain_slice.isel(time=slice(start_idx, None))#.sel(time=slice(None,end_date))
+    rain_subset = rain_slice.isel(time=slice(start_idx, None)).sel(time=slice(None,end_date))
+#    print("XXX", rain_subset.time)
+#    import sys
+#    sys.exit()
 
     # Create rolling 5-day sums
     rolling_sum = rain_subset.rolling(time=wet_spell, min_periods=wet_spell, center=False).sum()
@@ -227,9 +248,12 @@ def detect_observed_onset(rain_slice, thresh_slice, year, *, wet_init, wet_spell
     else:
         onset_condition = first_day_condition & sum_condition
 
-    #print("find_first_true = ", find_first_true)
-    #print("onset_condition = ", onset_condition[100,...] )
-    #print(" input_core_dims = ", [['time']])
+#    print("find_first_true = ", find_first_true)
+#    print("onset_condition = ", onset_condition[100,...] )
+#    print("onset_condition = ", onset_condition )
+#    #print(" input_core_dims = ", [['time']])
+#    import sys
+#    sys.exit()
 
     onset_indices = xr.apply_ufunc(
         find_first_true,
@@ -264,7 +288,7 @@ def detect_observed_onset(rain_slice, thresh_slice, year, *, wet_init, wet_spell
 # wet_spell, dry_spell, mok, prob=True, threshold,
 def compute_onset_for_deterministic_model(p_model, thresh_slice, onset_da, *,
                                           wet_init, wet_spell, dry_spell, dry_threshold, dry_extent,
-                                          max_forecast_day, mok, **kwargs):
+                                          max_forecast_day, mok, end_date, **kwargs):
 
     kwargs = restore_args(compute_onset_for_deterministic_model, kwargs, locals())
 
@@ -279,6 +303,7 @@ def compute_onset_for_deterministic_model(p_model, thresh_slice, onset_da, *,
     #dry_threshold = kwargs["dry_threshold"]
     #max_forecast_day = kwargs['max_forecast_day']
     #start_MMDD = kwargs["start_date"][1:]
+    #end_MMDD = kwargs["end_date"][1:]
     #forecast_bin_end = kwargs["forecast_bin"][1]
     #forecast_bin_start = kwargs["forecast_bin"][0]
 
@@ -320,6 +345,18 @@ def compute_onset_for_deterministic_model(p_model, thresh_slice, onset_da, *,
         init_date = pd.to_datetime(init_time)
         year = init_date.year
 
+        #end_date = datetime(year, *end_MMDD)
+
+        #diff = end_date - init_date
+
+        #if diff.days + 1 < full_steps:
+        #    #print(f"\n index= {t_idx} init_date {init_date}  YYYYooooYYYY diff.days = {diff.days}")
+        #    #sys.exit()
+        #    p_model_steps = p_model.isel(init_time=t_idx, step=slice(None, diff.days+2))
+        #else:
+        #    #print(p_model)
+        #    p_model_steps = p_model.isel(init_time=t_idx)
+
         if mok:
             mok_date = datetime(year, *mok) 
         else:
@@ -336,11 +373,33 @@ def compute_onset_for_deterministic_model(p_model, thresh_slice, onset_da, *,
                     skipped_no_obs += 1
                     continue
 
+#                if lat==14.25 and lon==39.75:
+#                    print(f"init= {init_date}, obs_onset= {obs_onset}")
+
+                #if pd.to_datetime(obs_onset) > end_date:
+#               #     print("YYYYY")
+#               #     print(f"i = {i}, j = {j}")
+#               #     print(pd.to_datetime(obs_onset))
+                #    skipped_no_obs += 1
+                #    continue
+
                 if pd.isna(obs_onset):
                     skipped_no_obs += 1
                     continue
 
                 obs_onset_dt = pd.to_datetime(obs_onset)
+
+#                if mok:
+#                    print(type(obs_onset_dt ))
+#                    print(type(mok_date))
+#                    if obs_onset_dt < pd.Timestamp(mok_date):
+#                        print(obs_onset_dt)
+#                        print(pd.Timestamp(mok_date))
+#                        obs_onset_dt = pd.Timestamp(mok_date)
+#                        print(obs_onset_dt)
+#                        print(obs_onset_dt.strftime('%Y-%m-%d'))
+#                        import sys
+#                        sys.exit()
 
                 if init_date >= obs_onset_dt:
                     skipped_late_init += 1
@@ -357,6 +416,7 @@ def compute_onset_for_deterministic_model(p_model, thresh_slice, onset_da, *,
                 try:
                     forecast_series = p_model.isel(
                         init_time=t_idx,
+                    #forecast_series = p_model_steps.isel(
                         lat=i,
                         lon=j,
                     #).sel(step=slice(forecast_bin_start, forecast_bin_start + max_steps_needed)).values
@@ -377,10 +437,16 @@ def compute_onset_for_deterministic_model(p_model, thresh_slice, onset_da, *,
                             if isonset:
                                 # Calculate the actual date this forecast day represents
                                 forecast_date = init_date + pd.Timedelta(days=day)
+
+                                #print(f"lon = {lon}, lat=={lat}")
+#                                if lon == 38.5 and lat==9.75 and init_date == pd.to_datetime("2019-05-02"):
+#                                    print(f"XXXXXXX forecast date = {forecast_date}, isonset {isonset}")
+#                                    print(f"onset_day = {onset_day}")
+#                                    print(f"mok = {mok_date.date()}")
     
                                 # If MOK flag is True, only count onset if it's on or after June 2nd
                                 if mok:
-                                    if forecast_date.date() > mok_date.date():
+                                    if forecast_date.date() >= mok_date.date():
                                         onset_day = day
                                         break
                                 else:
@@ -424,7 +490,7 @@ def compute_onset_for_deterministic_model(p_model, thresh_slice, onset_da, *,
 # in binned_skill_score_cmz.py
 def compute_onset_for_all_members(p_model, thresh_slice, onset_da, *, wet_init, wet_spell, 
                                   dry_spell, dry_threshold, dry_extent, members, onset_percentage_threshold, 
-                                  max_forecast_day, mok, **kwargs):
+                                  max_forecast_day, mok, end_date, **kwargs):
 
     kwargs = restore_args(compute_onset_for_all_members, kwargs, locals())
 
@@ -439,6 +505,7 @@ def compute_onset_for_all_members(p_model, thresh_slice, onset_da, *, wet_init, 
     #max_forecast_day = kwargs['max_forecast_day']
     #members = kwargs["members"]
     #start_MMDD = kwargs["start_date"][1:]
+    #end_MMDD = kwargs["end_date"][1:]
     #forecast_bin_end = kwargs["forecast_bin"][1]
     #forecast_bin_start = kwargs["forecast_bin"][0]
     #onset_percentage_threshold = kwargs["onset_percentage_threshold"]
@@ -500,6 +567,15 @@ def compute_onset_for_all_members(p_model, thresh_slice, onset_da, *, wet_init, 
         init_date = pd.to_datetime(init_time)
         year = init_date.year
 
+        #end_date = datetime(year, *end_MMDD)
+
+        #diff = end_date - init_date
+
+        #if diff.days + 1 < full_steps:
+        #    p_model_steps = p_model.isel(init_time=t_idx, step=slice(None, diff.days+2))
+        #else:
+        #    p_model_steps = p_model.isel(init_time=t_idx)
+
         if mok:
             mok_date = datetime(year, *mok)
 
@@ -517,6 +593,10 @@ def compute_onset_for_all_members(p_model, thresh_slice, onset_da, *, wet_init, 
             except:
                 skipped_no_obs += len(members)
                 continue
+
+            #if pd.to_datetime(obs_onset) > end_date:
+            #    skipped_no_obs += 1
+            #    continue
 
             # Skip if no observed onset
             if pd.isna(obs_onset):
@@ -550,6 +630,7 @@ def compute_onset_for_all_members(p_model, thresh_slice, onset_da, *, wet_init, 
                 try:
                     # Extract forecast time series for this member and location
                     forecast_series = p_model.isel(
+                    #forecast_series = p_model_steps.isel(
                         init_time=t_idx,
                         lat=lat_idx,
                         lon=lon_idx,
@@ -585,9 +666,17 @@ def compute_onset_for_all_members(p_model, thresh_slice, onset_da, *, wet_init, 
                             # Calculate the actual date this forecast day represents
                             forecast_date = init_date + pd.Timedelta(days=day)
 
+
+#                            print(f"lon = {lon}, lat=={lat}")
+#                            if lon == 38.5 and lat==9.75:# and init_date == pd.to_datetime("2019-05-02"):
+#                                print(f"XXXXXXX forecast date = {forecast_date}, isonset {isonset}")
+#                                print(f"onset_day = {onset_day}")
+#                                print(f"mok = {mok_date.date()}")
+
+
                             # If MOK flag is True, only count onset if it's on or after June 2nd
                             if mok:
-                                if forecast_date.date() > mok_date.date():
+                                if forecast_date.date() >= mok_date.date():
                                     onset_day = day
                                     break
                             else:

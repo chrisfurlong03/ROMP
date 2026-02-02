@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 #from matplotlib.patches import Polygon
 #from matplotlib.path import Path
 #import matplotlib.patches as patches
+import sys
 
 
 def compute_climatological_onset(*, obs_dir, obs_file_pattern, obs_var, thresh_file, thresh_var, wet_threshold, 
@@ -102,6 +103,8 @@ def compute_climatology_as_forecast(climatological_onset_doy, year, init_dates, 
     # Get dimensions
     lats = climatological_onset_doy.lat.values
     lons = climatological_onset_doy.lon.values
+
+    #end_MMDD = kwargs["end_date"][1:]
     
     print(f"Processing climatology as forecast for {len(init_dates)} init times x {len(lats)} lats x {len(lons)} lons...")
     print(f"Year: {year}")
@@ -120,6 +123,13 @@ def compute_climatology_as_forecast(climatological_onset_doy, year, init_dates, 
         #    print(f"Processing init time {t_idx+1}/{len(init_dates)}: {init_time.strftime('%Y-%m-%d')}")
         
         init_date = pd.to_datetime(init_time)
+        year = init_date.year
+        #end_date = datetime(year, *end_MMDD)
+#        print(f"init_time {init_time}, {type(init_time)}")
+#        print(f"init_date {init_date}, {type(init_date)}")
+#        print(f"init_dates {init_dates}, {type(init_dates)}")
+#        sys.exit()
+
         if mok:
             mok_date = datetime(year, *mok)  # June 2nd of the same year
         
@@ -127,6 +137,7 @@ def compute_climatology_as_forecast(climatological_onset_doy, year, init_dates, 
             for j, lon in enumerate(lons):
                 
                 total_potential_inits += 1
+#                print(f"available init {init_date}") if lat==11.75 and lon==40.5 else None
                 
                 # Get observed onset date for this grid point
                 try:
@@ -135,10 +146,17 @@ def compute_climatology_as_forecast(climatological_onset_doy, year, init_dates, 
                     skipped_no_obs += 1
                     continue
                 
+#                print("1111111111") if lat==11.75 and lon==40.5 else None
+                #if pd.to_datetime(obs_onset) > end_date:
+                #    skipped_no_obs += 1
+                #    continue
+#                print("2222222") if lat==11.75 and lon==40.5 else None
+
                 # Skip if no observed onset
                 if pd.isna(obs_onset):
                     skipped_no_obs += 1
                     continue
+#                print("3333333") if lat==11.75 and lon==40.5 else None
                 
                 # Convert observed onset to datetime
                 obs_onset_dt = pd.to_datetime(obs_onset)
@@ -147,6 +165,7 @@ def compute_climatology_as_forecast(climatological_onset_doy, year, init_dates, 
                 if init_date >= obs_onset_dt:
                     skipped_late_init += 1
                     continue
+ #               print("4444444") if lat==11.75 and lon==40.5 else None
                 
                 valid_inits += 1
                 
@@ -154,9 +173,23 @@ def compute_climatology_as_forecast(climatological_onset_doy, year, init_dates, 
                 clim_onset_doy = climatological_onset_doy.isel(lat=i, lon=j).values
                 
                 # Skip if no climatological onset available
+                # Bug fix from original code which directly skip/continue if no clim onset
                 if np.isnan(clim_onset_doy):
+                    onset_day, onset_date = None, None
+                    result = {
+                        'init_time': init_time,
+                        'lat': lat,
+                        'lon': lon,
+                        'onset_day': onset_day,  # None if no onset forecasted
+                        'onset_date': onset_date.strftime('%Y-%m-%d') if onset_date is not None else None,
+                        'climatological_onset_doy': clim_onset_doy,
+                        'climatological_onset_date': clim_onset_date.strftime('%Y-%m-%d'),
+                        'obs_onset_date': obs_onset_dt.strftime('%Y-%m-%d')  # Store observed onset for reference
+                    }
+                    results_list.append(result)
                     continue
                 
+#                print(f"5555 {clim_onset_doy}") if lat==11.75 and lon==40.5 else None
                 # Convert climatological day of year to actual date for this year
                 try:
                     clim_onset_date = datetime(year, 1, 1) + timedelta(days=int(clim_onset_doy) - 1)
@@ -171,24 +204,31 @@ def compute_climatology_as_forecast(climatological_onset_doy, year, init_dates, 
                 onset_day = None
                 onset_date = None
                 
+#                print(f"XXXxx clim_onset_date {clim_onset_date}") if lat==11.75 and lon==40.5 else None
+#                print(f"init {init_date}") if lat==11.75 and lon==40.5 else None
+#                print(f"{forecast_window_start} {forecast_window_end}") if lat==11.75 and lon==40.5 else None
                 if forecast_window_start <= clim_onset_date <= forecast_window_end:
                     # Climatological onset is within forecast window
                     onset_day = (clim_onset_date - init_date).days
                     
+#                    print(f"XXXxx onset_day {onset_day}") if lat==11.75 and lon==40.5 else None
                     # Apply MOK filtering if requested
                     if mok:
-                        if clim_onset_date.date() > mok_date.date():
+                        if clim_onset_date.date() >= mok_date.date():
                             # Valid onset after MOK date
                             onset_date = clim_onset_date
                             onsets_forecasted += 1
+#                            print(f"PPPPP  onset_day {onset_day}") if lat==11.75 and lon==40.5 else None
                         else:
                             # Reset if before MOK date
                             onset_day = None
                             onset_date = None
+#                            print(f"YYYYY onset_day {onset_day}") if lat==11.75 and lon==40.5 else None
                     else:
                         # No MOK filtering
                         onset_date = clim_onset_date
                         onsets_forecasted += 1
+#                        print(f"ZZZZZ onset_day {onset_day}") if lat==11.75 and lon==40.5 else None
                 
                 # Store result
                 result = {
