@@ -222,10 +222,39 @@ def ref_model_case(case_orig, setting):
 
     case.update(case_ref)
 
-    if case.model == 'climatology':
-        case.years = case.years_clim
+    #if case.model == 'climatology':
+    #    case.years = case.years_clim
 
     case_cfg_ref = {**asdict(case), **asdict(setting)}
 
 
     return case, case_cfg_ref
+
+
+
+def filter_bins_in_window(day_bins, verification_window):
+    """
+    Returns only the day bins that are completely or partially within the verification window.
+
+    Args:
+        day_bins: tuple of tuples, e.g. ((1,5), (6,10), ...)
+        verification_window: tuple of (start, end), e.g. (6, 20)
+
+    Returns:
+        tuple of tuples containing only the bins inside the window
+    """
+    start_win, end_win = verification_window
+
+    #filtered = []
+    #for bin_start, bin_end in day_bins:
+    #    # Check if the bin overlaps with or is inside the window
+    #    # Condition: bin is not completely before window AND not completely after window
+    #    if bin_end >= start_win and bin_start <= end_win:
+    #        filtered.append((bin_start, bin_end))
+    #return tuple(filtered)
+
+    return tuple(
+        bin_range
+        for bin_range in day_bins
+        if start_win <= bin_range[0] and bin_range[1] <= end_win
+    )

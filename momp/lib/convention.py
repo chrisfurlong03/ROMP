@@ -18,8 +18,8 @@ class Case:
     obs: str = field(default=None)
     obs_var: str = field(default=None)
 
-    ref_model: str = field(default=None)
-    ref_model_var: str = field(default=None)
+    ref_model: Optional[str] = field(default=None)
+    ref_model_var: Optional[str] = field(default=None)
 
     thresh_file: Optional[str] = field(default=None)
     thresh_var: Optional[str] = field(default=None)
@@ -94,12 +94,12 @@ class Setting:
     skill_score: bool = field(default=False)
 
     obs_dir: str = field(default="../data")
-    ref_model_dir: str = field(default="../data")
+    ref_model_dir: Optional[str] = field(default="../data")
 
     shpfile_dir: Optional[str] = field(default=None)
 
     obs_file_pattern: str = field(default="{}.nc")
-    ref_model_file_pattern: str = field(default="{}.nc")
+    ref_model_file_pattern: Optional[str] = field(default="{}.nc")
     
     obs_unit_cvt: Optional[float] = field(default=None)
     ref_model_unit_cvt: Optional[float] = field(default=None)

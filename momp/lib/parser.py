@@ -141,6 +141,7 @@ def create_parser(config, cli_args=None):
     parser.add_argument(
         "--end_date",
         #type=parse_tuple,
+        nargs=3,
         type=int,
         action=ForceTupleAction,
         default=config['end_date'],
