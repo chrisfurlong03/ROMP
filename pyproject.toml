@@ -33,6 +33,7 @@ dependencies = [
 dev = [
 #  "pathlib",
 #  "argparse",
+  "dask",
   "pytest",
   "jupyterlab",
   "black",

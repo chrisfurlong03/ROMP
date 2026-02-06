@@ -105,6 +105,10 @@ if globals().get("shpfile_dir") is not None:
     if not Path(globals()["shpfile_dir"]).is_absolute():
         shpfile_dir = set_dir(globals()["shpfile_dir"])
 
+if globals().get("nc_mask") is not None:
+    if not Path(globals()["nc_mask"]).is_absolute():
+        nc_mask = set_dir(globals()["nc_mask"])
+
 
 os.makedirs(dir_fig, exist_ok=True)
 os.makedirs(dir_out, exist_ok=True)
