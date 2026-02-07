@@ -108,8 +108,8 @@ def box_boundary(rect_boundary, ax, *, edgecolor='black', linewidth=2,
 
     vals = [lats, latn, lonw, lone]
 
-        if any(v > 360 or v < -180 for v in vals):
-            return ax
+    if any(v > 360 or v < -180 for v in vals):
+        return ax
 
     # Normalize bounds (safety)
     lonw, lone = sorted([lonw, lone])
