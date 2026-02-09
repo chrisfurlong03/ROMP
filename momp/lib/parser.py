@@ -1,7 +1,8 @@
 import argparse
 import ast
 #from datetime import datetime
-#from pathlib import Path
+from pathlib import Path
+from importlib import resources
 
 def create_parser(config, cli_args=None):
 
@@ -298,6 +299,28 @@ def parse_num_to_tuple(value):
             f"Invalid format: '{value}'. Expected space-separated integers like '2024 5 1'."
         )
 
+
+
+def ensure_config_exists(param_path: str) -> Path:
+    """
+    Ensure a user-writable config exists at param_path.
+    If missing, create it from the packaged template momp/params/config.in.
+    """
+    dst = Path(param_path).expanduser()
+
+    if dst.exists():
+        return dst
+
+    dst.parent.mkdir(parents=True, exist_ok=True)
+
+    template = (
+        resources.files("momp")
+        .joinpath("params/config.in")
+        .read_text(encoding="utf-8")
+    )
+
+    dst.write_text(template, encoding="utf-8")
+    return dst
 
 
 ## Helper to parse date tuples (YYYY, M, D), python script.py --start_date "(2019, 6, 1)"

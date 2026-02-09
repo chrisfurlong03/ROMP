@@ -15,10 +15,16 @@ from .parser import create_parser
 from types import SimpleNamespace
 from momp.lib.assertion import ROMPValidator, ROMPConfigError
 
+from momp.lib.parser import ensure_config_exists
+
 
 package = "momp"
-base_dir = importlib.resources.files(package)
-base_dir = Path(base_dir).expanduser().as_posix().replace(str(Path.home()), "~")
+#base_dir = importlib.resources.files(package)
+#base_dir = Path(base_dir).expanduser().as_posix().replace(str(Path.home()), "~")
+
+with importlib.resources.as_file(importlib.resources.files(package)) as p:
+    base_dir = Path(p)
+
 print(f"package base dir {base_dir}")
 
 #config_file = set_dir("params/config.in")
@@ -44,7 +50,10 @@ def get_config_path_pre_parse():
     return args.param
 
 # Use the pre-parsed path instead of the hardcoded one
-requested_path = get_config_path_pre_parse()
+#requested_path = get_config_path_pre_parse()
+config_path = get_config_path_pre_parse()
+requested_path = ensure_config_exists(config_path)
+
 ##config_file = set_dir(requested_path)
 ##
 ##if not os.path.exists(config_file):
@@ -85,6 +94,19 @@ excluded_vars = {"f", "config_file_path", "params_in"}
 #if not Path(globals()["dir_in"]).is_absolute():
 #    dir_in = set_dir(globals()["dir_in"])
 #
+
+work_dir = (
+    Path(globals()["work_dir"])
+    .expanduser()
+    .resolve()
+)
+
+pkg_dir = (
+    Path(globals()["pkg_dir"])
+    .expanduser()
+    .resolve()
+)
+
 if not Path(globals()["ref_model_dir"]).is_absolute():
     ref_model_dir = set_dir(globals()["ref_model_dir"])
 
@@ -110,9 +132,24 @@ if globals().get("nc_mask") is not None:
         nc_mask = set_dir(globals()["nc_mask"])
 
 
+print("work_dir = ", work_dir)
+print("pkg_dir = ", pkg_dir)
+print("ref_model_dir = ", ref_model_dir)
+print("out_dir = ", dir_out)
+print("out_fig = ", dir_fig)
+print("obs_dir = ", obs_dir)
+print("thresh_file = ", thresh_file)
+print("shpfile_dir = ", shpfile_dir)
+print("nc_mask = ", nc_mask)
+sys.exit()
+
+
 os.makedirs(dir_fig, exist_ok=True)
 os.makedirs(dir_out, exist_ok=True)
 
+# ----
+# placeholder --- add dir assertion here 
+# ----
 
 # print("dir_in = ",dir_in)
 

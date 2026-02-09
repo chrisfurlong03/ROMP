@@ -3,22 +3,34 @@ from importlib import resources
 from pathlib import PurePosixPath, Path
 
 
-def set_dir(path_str):
+#def set_dir(path_str):
+def set_dir(path_str, work_dir=None):
     """
     Resolves a path string into an OS-agnostic Path or Traversable object.
     Checks local filesystem first, then falls back to package resources.
     """
     # 1. Convert to an OS-agnostic Path object (handles \ and / automatically)
-    p = Path(path_str)
+    p = Path(path_str).expanduser()
 
     # 2. Priority 1: Check if the file exists locally (User Customization)
-    if p.exists():
-        return p
+    #if p.exists():
+    #    return p
+        #return p.expanduser().resolve()
 
     # 3. Priority 2: Look inside the package resources
-    package = "momp"
     # Use joinpath(*p.parts) to navigate the package structure correctly
-    resource_target = resources.files(package).joinpath(*p.parts)
+    #package = "momp"
+    #resource_target = resources.files(package).joinpath(*p.parts)
+
+    if p.is_absolute():
+        return p.resolve()
+
+    elif not work_dir:
+        #resource_target = Path(path_str).expanduser().resolve()
+        resource_target = p.resolve()
+    else:
+        wd = Path(work_dir).expanduser().resolve()
+        resource_target = (wd / p).resolve()
     
     # We return the 'Traversable' object. Both Path and Traversable have an .exists() method.
     return resource_target

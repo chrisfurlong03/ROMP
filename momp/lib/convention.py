@@ -68,6 +68,9 @@ class Case:
 
 @dataclass
 class Setting:
+    work_dir: str = field(default="~/")
+    pkg_dir: str = field(default="~/")
+
     layout: list = field(default_factory=list)
     model_list: tuple[str, ...] = field(default=None)
     verification_window_list: tuple[tuple[int, int], ...] = field(default=None)
