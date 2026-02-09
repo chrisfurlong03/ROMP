@@ -141,7 +141,7 @@ print("obs_dir = ", obs_dir)
 print("thresh_file = ", thresh_file)
 print("shpfile_dir = ", shpfile_dir)
 print("nc_mask = ", nc_mask)
-sys.exit()
+#sys.exit()
 
 
 os.makedirs(dir_fig, exist_ok=True)
