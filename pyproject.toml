@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "MOMP"
+name = "ROMP"
 version = "0.0.1"
-description = "Monsoon Onset Metrics Package (MOMP)"
+description = "Rainy season Onset Metrics Package (ROMP)"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
