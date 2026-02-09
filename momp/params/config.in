@@ -8,6 +8,8 @@
 # 1. CORE STRUCTURE & DIMENSIONS
 # ------------------------------------------------------------------------------
 project_name = "test ROMP run with demo data"
+work_dir = "~/Code/benchmarking/test_romp_project/"
+pkg_dir = "~/Code/benchmarking/momp/"
 
 # Internal benchmarking workflow layout (e.g., dimensions in the processed case).
 # Frozen with major ROMP versions
