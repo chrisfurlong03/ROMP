@@ -73,9 +73,9 @@ def extract_overall_dict(dic, second_level_key):
     # 1st-level keys
     first_level_keys = list(dic.keys())
 
-#    print("\n first_level_keys = ", first_level_keys)
-#    print("\n first key value dict = ", next(iter(dic.values())))
-#    print("\n first key value dict = ", next(iter(dic.values())).get(second_level_key))
+    #print("\n first_level_keys = ", first_level_keys)
+    #print("\n first key value dict = ", next(iter(dic.values())))
+    #print("\n first key value dict = ", next(iter(dic.values())).get(second_level_key))
     
     # 1-D array of values for the chosen 2nd-level key
     #array_1d = np.array([dic[first][second_level_key][0] for first in first_level_keys])
