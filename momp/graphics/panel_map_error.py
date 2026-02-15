@@ -27,7 +27,7 @@ class PanelMapPlotConfig:
     top: float = 0.90
     bottom: float = 0.10
     wspace: float = 0.02
-    hspace: float = 0.06
+    hspace: float = 0.30
     cbar_hpad: float = 0.22
     cbar_vshift: float = 0.012
     cbar_frac_ref: float = 0.70
@@ -47,7 +47,7 @@ class PanelMapLayout:
 
 
 def build_panel_layout(n_panels: int, plot_cfg: PanelMapPlotConfig) -> PanelMapLayout:
-    """Create a Cartopy-safe layout with a dedicated colorbar row."""
+    """Create a Cartopy-safe layout with a dedicated top colorbar row."""
     ncols = max(1, min(plot_cfg.max_cols, n_panels))
     nrows = int(np.ceil(n_panels / ncols))
 
@@ -61,7 +61,7 @@ def build_panel_layout(n_panels: int, plot_cfg: PanelMapPlotConfig) -> PanelMapL
         nrows + 1,
         ncols,
         figure=fig,
-        height_ratios=[1.0] * nrows + [0.06],
+        height_ratios=[0.06] + [1.0] * nrows,
         left=plot_cfg.left,
         right=plot_cfg.right,
         top=plot_cfg.top,
@@ -73,16 +73,16 @@ def build_panel_layout(n_panels: int, plot_cfg: PanelMapPlotConfig) -> PanelMapL
     map_axes = []
     for idx in range(n_panels):
         row, col = divmod(idx, ncols)
-        ax = fig.add_subplot(gspec[row, col], projection=ccrs.PlateCarree())
+        ax = fig.add_subplot(gspec[row + 1, col], projection=ccrs.PlateCarree())
         ax.set_anchor("N")
         map_axes.append(ax)
 
-    cax_ref = fig.add_subplot(gspec[nrows, 0])
+    cax_ref = fig.add_subplot(gspec[0, 0])
     cax_ref.set_position(_shrink_horizontally(cax_ref.get_position(), plot_cfg.cbar_frac_ref, plot_cfg.cbar_vshift))
 
     cax_mod = None
     if n_panels > 1:
-        mod_cell = gspec[nrows, 1:] if ncols > 1 else gspec[nrows, :]
+        mod_cell = gspec[0, 1:] if ncols > 1 else gspec[0, :]
         cax_mod = fig.add_subplot(mod_cell)
         cax_mod.set_position(_shrink_horizontally(cax_mod.get_position(), plot_cfg.cbar_frac_mod, plot_cfg.cbar_vshift))
 
@@ -102,7 +102,7 @@ def build_panel_layout(n_panels: int, plot_cfg: PanelMapPlotConfig) -> PanelMapL
 def _shrink_horizontally(pos, frac: float, vshift: float):
     new_w = pos.width * frac
     new_x = pos.x0 + (pos.width - new_w) / 2.0
-    return [new_x, pos.y0 - vshift, new_w, pos.height]
+    return [new_x, pos.y0 + vshift, new_w, pos.height]
 
 
 def panel_map_mae_far_mr(
@@ -134,7 +134,7 @@ def panel_map_mae_far_mr(
         unit = "days"
         if var_name in ["false_alarm_rate", "miss_rate"]:
             da = da*100
-            unit = '$(\%)$'
+            unit = r"$(\%)$"
         ds.close()
 
         if i == 0:
@@ -164,11 +164,11 @@ def panel_map_mae_far_mr(
 
         if i > 0:
             #show_ylabel, title, cmap = False, None, 'RdBu_r'
-            show_ylabel, title, cmap = False, '$\Delta$'+unit, 'RdBu_r'
+            show_ylabel, title, cmap = False, r"$\Delta$" + unit, "RdBu_r"
         else:
             #show_ylabel, title, cmap = True, f"{var_name} {window_str} day", 'YlOrRd'
             #show_ylabel, title, cmap = True, None, 'YlOrRd'
-            show_ylabel, title, cmap = True, unit, 'YlOrRd'
+            show_ylabel, title, cmap = True, unit, "YlOrRd"
 
         print(i, show_ylabel, title, cmap)
 
@@ -379,8 +379,6 @@ if __name__ == "__main__":
     plot_path = os.path.join(cfg.dir_fig, plot_filename)
     plt.savefig(plot_path, dpi=300, bbox_inches='tight')
     print(f"Figure saved to: {plot_path}")
-
-
 
 
 
